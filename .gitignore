@@ -1,0 +1,26 @@
+# env
+.env
+.env.*
+
+# air
+tmp/
+
+# binaries
+*.exe
+*.out
+*.test
+*.dll
+*.so
+*.dylib
+
+# logs
+*.log
+build-errors.log
+
+# ide
+.vscode/
+.idea/
+
+# go
+vendor/
+go.work.sum
