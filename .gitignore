@@ -24,3 +24,5 @@ build-errors.log
 # go
 vendor/
 go.work.sum
+
+PLAN.md

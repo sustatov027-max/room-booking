@@ -37,6 +37,8 @@ migrate-down:
 
 seed-up:
 	docker-compose exec db psql -U postgres -d room_booking -f /seeds/000001_seed_test_users.up.sql
+	docker-compose exec db psql -U postgres -d room_booking -f /seeds/000002_seed_test_rooms.up.sql
 
 seed-down:
 	docker-compose exec db psql -U postgres -d room_booking -f /seeds/000001_seed_test_users.down.sql
+	docker-compose exec db psql -U postgres -d room_booking -f /seeds/000002_seed_test_rooms.down.sql
