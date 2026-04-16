@@ -15,7 +15,7 @@ type Config struct {
 	PostgresUser     string
 	PostgresPassword string
 	PostgresName     string
-	JWTSecret        string
+	Cost             string
 	Port             string
 	LogLevel         string
 }
@@ -31,7 +31,7 @@ func Load() (*Config, error) {
 		PostgresUser:     strings.TrimSpace(os.Getenv("DB_USER")),
 		PostgresPassword: strings.TrimSpace(os.Getenv("DB_PASSWORD")),
 		PostgresName:     strings.TrimSpace(os.Getenv("DB_NAME")),
-		JWTSecret:        strings.TrimSpace(os.Getenv("JWT_SECRET")),
+		Cost:             strings.TrimSpace(os.Getenv("COST")),
 		Port:             strings.TrimSpace(os.Getenv("SERVER_PORT")),
 		LogLevel:         strings.TrimSpace(os.Getenv("LOG_LEVEL")),
 	}
@@ -47,7 +47,7 @@ func Load() (*Config, error) {
 		{key: "DB_USER", value: cfg.PostgresUser},
 		{key: "DB_PASSWORD", value: cfg.PostgresPassword},
 		{key: "DB_NAME", value: cfg.PostgresName},
-		{key: "JWT_SECRET", value: cfg.JWTSecret},
+		{key: "COST", value: cfg.Cost},
 		{key: "SERVER_PORT", value: cfg.Port},
 		{key: "LOG_LEVEL", value: cfg.LogLevel},
 	}

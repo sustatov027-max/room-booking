@@ -28,7 +28,6 @@ func main() {
 	}
 
 	db = database.DB()
-	
     port := cfg.Port
 
 	r := gin.Default()
