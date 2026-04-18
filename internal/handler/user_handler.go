@@ -5,16 +5,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sustatov027-max/room-booking/internal/dto"
+	"github.com/sustatov027-max/room-booking/pkg/utils"
 )
 
 func RegisterUserRoutes(r *gin.Engine, h *UserHandler){
 	r.POST("/auth/register", h.RegisterUser)
+	r.POST("/auth/login", h.LoginUser)
 }
 
 type UserServ interface{
-	RegisterUser(dto.RegisterUserDTO) (string, error)
-	//LoginUser(dto.LoginUserDTO) (string, error)
-	//GetUser(userID int) (models.User, error)
+	RegisterUser(dto.RegisterUserDTO) (string, utils.MessageJSON)
+	LoginUser(dto.LoginUserDTO) (string, utils.MessageJSON)
+	//GetUser(userID int) (models.User, utils.MessageJSON)
 }
 
 type UserHandler struct{
@@ -34,11 +36,29 @@ func (h *UserHandler) RegisterUser(ctx *gin.Context){
 		return
 	}
 
-	UUID, err := h.serv.RegisterUser(body)
-	if err != nil{
-		ctx.IndentedJSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	UUID, message := h.serv.RegisterUser(body)
+	if message.Message != ""{
+		ctx.IndentedJSON(message.Code, map[string]string{"error": message.Message})
 		return
 	}
 
 	ctx.IndentedJSON(http.StatusCreated, map[string]string{"uuid": UUID})
+}
+
+func (h *UserHandler) LoginUser(ctx *gin.Context){
+	var body dto.LoginUserDTO
+
+	err := ctx.ShouldBindBodyWithJSON(&body)
+	if err != nil{
+		ctx.IndentedJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+
+	token, message := h.serv.LoginUser(body)
+	if message.Message != ""{
+		ctx.IndentedJSON(message.Code, map[string]string{"error": message.Message})
+		return
+	}
+
+	ctx.IndentedJSON(http.StatusOK, map[string]string{"token":token})
 }

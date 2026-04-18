@@ -16,6 +16,7 @@ type Config struct {
 	PostgresPassword string
 	PostgresName     string
 	Cost             string
+	Secret           string
 	Port             string
 	LogLevel         string
 }
@@ -25,6 +26,8 @@ var loadedConfig *Config
 func Load() (*Config, error) {
 	_ = godotenv.Load(".env")
 
+	var errs []string
+
 	cfg := &Config{
 		DBHost:           strings.TrimSpace(os.Getenv("DB_HOST")),
 		DBPort:           strings.TrimSpace(os.Getenv("DB_PORT")),
@@ -32,11 +35,10 @@ func Load() (*Config, error) {
 		PostgresPassword: strings.TrimSpace(os.Getenv("DB_PASSWORD")),
 		PostgresName:     strings.TrimSpace(os.Getenv("DB_NAME")),
 		Cost:             strings.TrimSpace(os.Getenv("COST")),
+		Secret:           strings.TrimSpace(os.Getenv("SECRET")),
 		Port:             strings.TrimSpace(os.Getenv("SERVER_PORT")),
 		LogLevel:         strings.TrimSpace(os.Getenv("LOG_LEVEL")),
 	}
-
-	var errs []string
 
 	required := []struct {
 		key   string
@@ -48,6 +50,7 @@ func Load() (*Config, error) {
 		{key: "DB_PASSWORD", value: cfg.PostgresPassword},
 		{key: "DB_NAME", value: cfg.PostgresName},
 		{key: "COST", value: cfg.Cost},
+		{key: "SECRET", value: cfg.Secret},
 		{key: "SERVER_PORT", value: cfg.Port},
 		{key: "LOG_LEVEL", value: cfg.LogLevel},
 	}
