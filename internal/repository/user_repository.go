@@ -37,12 +37,12 @@ func (r *UserRepository) AddUser(user dto.RegisterUserDTO) (string, utils.Messag
 
 func (r *UserRepository) GetUser(user dto.LoginUserDTO) (string, utils.MessageJSON) {
 	var userID uuid.UUID
-	var hashedPassword string
+	var hashedPassword, role string
 	err := r.DB.QueryRow(`
-		SELECT id, password_hash 
+		SELECT id, password_hash, role 
 		FROM users 
 		WHERE email = $1;`,
-		user.Email).Scan(&userID, &hashedPassword)
+		user.Email).Scan(&userID, &hashedPassword, &role)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", utils.MessageJSON{Code: http.StatusUnauthorized, Message: "Invalid email or password"}
@@ -56,7 +56,7 @@ func (r *UserRepository) GetUser(user dto.LoginUserDTO) (string, utils.MessageJS
 		return "", utils.MessageJSON{Code: http.StatusUnauthorized, Message: "Invalid email or password"}
 	}
 
-	token, err := utils.GetToken(userID)
+	token, err := utils.GetToken(userID, role)
 	if err != nil {
 		return "", utils.MessageJSON{Code: 500, Message: err.Error()}
 	}

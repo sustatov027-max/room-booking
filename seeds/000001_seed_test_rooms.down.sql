@@ -3,5 +3,16 @@ DELETE FROM rooms WHERE name IN (
     'Актовый', 
     'Точка кипения',
     'OpenSpace',
-    'Meeting Room'
+    'Meeting Room',
+    'Executive',
+    'Boardroom',
+    'Strategy',
+    'Капсула',
+    'Тандем',
+    'Микро',
+    'Лаунж',
+    'Патио',
+    '15 минут',
+    'Стендап',
+    'Холл'
 );
