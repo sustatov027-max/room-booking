@@ -1,13 +1,17 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/sustatov027-max/room-booking/internal/dto"
+	"github.com/sustatov027-max/room-booking/internal/models"
 	"github.com/sustatov027-max/room-booking/pkg/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository interface {
 	AddUser(user dto.RegisterUserDTO) (string, utils.MessageJSON)
-	GetUser(user dto.LoginUserDTO) (string, utils.MessageJSON)
+	GetAuthUserByEmail(email string) (models.AuthUser, utils.MessageJSON)
 }
 
 type UserService struct {
@@ -28,5 +32,20 @@ func (s *UserService) RegisterUser(user dto.RegisterUserDTO) (string, utils.Mess
 }
 
 func (s *UserService) LoginUser(user dto.LoginUserDTO) (string, utils.MessageJSON) {
-	return s.rep.GetUser(user)
+	authUser, message := s.rep.GetAuthUserByEmail(user.Email)
+	if message.Message != "" {
+		return "", message
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(authUser.PasswordHash), []byte(user.Password))
+	if err != nil {
+		return "", utils.MessageJSON{Code: http.StatusUnauthorized, Message: "Invalid email or password"}
+	}
+
+	token, err := utils.GetToken(authUser.ID, authUser.Role)
+	if err != nil {
+		return "", utils.MessageJSON{Code: 500, Message: err.Error()}
+	}
+
+	return token, utils.MessageJSON{}
 }
