@@ -5,10 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/sustatov027-max/room-booking/internal/dto"
+	"github.com/sustatov027-max/room-booking/internal/models"
 	"github.com/sustatov027-max/room-booking/pkg/utils"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct {
@@ -20,8 +19,8 @@ func (r *UserRepository) AddUser(user dto.RegisterUserDTO) (string, utils.Messag
 	log.Printf("[REPO] Executing query: INSERT INTO users...")
 
 	err := r.DB.QueryRow(`
-		INSERT INTO users (email, password_hash, role) 
-		VALUES ($1, $2, $3) 
+		INSERT INTO users (email, password_hash, role)
+		VALUES ($1, $2, $3)
 		RETURNING id;`,
 		user.Email, user.Password, user.Role,
 	).Scan(&UUID)
@@ -35,31 +34,21 @@ func (r *UserRepository) AddUser(user dto.RegisterUserDTO) (string, utils.Messag
 	return UUID, utils.MessageJSON{}
 }
 
-func (r *UserRepository) GetUser(user dto.LoginUserDTO) (string, utils.MessageJSON) {
-	var userID uuid.UUID
-	var hashedPassword, role string
+func (r *UserRepository) GetAuthUserByEmail(email string) (models.AuthUser, utils.MessageJSON) {
+	var user models.AuthUser
+
 	err := r.DB.QueryRow(`
-		SELECT id, password_hash, role 
-		FROM users 
+		SELECT id, password_hash, role
+		FROM users
 		WHERE email = $1;`,
-		user.Email).Scan(&userID, &hashedPassword, &role)
+		email,
+	).Scan(&user.ID, &user.PasswordHash, &user.Role)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", utils.MessageJSON{Code: http.StatusUnauthorized, Message: "Invalid email or password"}
+			return models.AuthUser{}, utils.MessageJSON{Code: http.StatusUnauthorized, Message: "Invalid email or password"}
 		}
-		return "", utils.MessageJSON{Code: 500, Message: err.Error()}
+		return models.AuthUser{}, utils.MessageJSON{Code: 500, Message: err.Error()}
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password))
-	if err != nil {
-		log.Print("Invalid password")
-		return "", utils.MessageJSON{Code: http.StatusUnauthorized, Message: "Invalid email or password"}
-	}
-
-	token, err := utils.GetToken(userID, role)
-	if err != nil {
-		return "", utils.MessageJSON{Code: 500, Message: err.Error()}
-	}
-
-	return token, utils.MessageJSON{}
+	return user, utils.MessageJSON{}
 }

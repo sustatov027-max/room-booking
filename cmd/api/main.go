@@ -39,7 +39,12 @@ func main() {
 	userService := service.NewUserService(userRepository)
 	userHandler := handler.NewUserHandler(userService)
 
+	roomRepository := &repository.RoomRepository{DB: db}
+	roomService := service.NewRoomService(roomRepository)
+	roomHandler := handler.NewRoomHandler(roomService)
+
 	handler.RegisterUserRoutes(r, userHandler)
+	handler.RegisterRoomRoutes(r, roomHandler)
 	r.GET("/health", health)
 
 	if err := r.Run(":" + port); err != nil {
