@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 
+	"github.com/sustatov027-max/room-booking/internal/dto"
 	"github.com/sustatov027-max/room-booking/internal/models"
 	"github.com/sustatov027-max/room-booking/pkg/utils"
 )
@@ -36,4 +37,21 @@ func (r *RoomRepository) ListRooms() ([]models.Room, utils.MessageJSON) {
 	}
 
 	return rooms, utils.MessageJSON{}
+}
+
+func (r *RoomRepository) AddRoom(room dto.CreateRoomDTO) (string, utils.MessageJSON){
+	var UUID string
+
+	err := r.DB.QueryRow(`
+				INSERT INTO rooms(name, description, capacity) 
+				VALUES ($1, $2, $3)
+				RETURNING id;`,
+			room.Name, room.Description, room.Capacity,
+		).Scan(&UUID)
+
+	if err != nil{
+		return "", utils.MessageJSON{Code:500, Message: err.Error()}
+	}
+
+	return UUID, utils.MessageJSON{}
 }
