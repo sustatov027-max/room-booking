@@ -7,6 +7,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/sustatov027-max/room-booking/internal/dto"
+	"github.com/sustatov027-max/room-booking/internal/models"
 	"github.com/sustatov027-max/room-booking/pkg/utils"
 )
 
@@ -39,7 +40,7 @@ func (r *ScheduleRepository) AddSchedule(schedule dto.CreateScheduleDTO) (string
 		return "", utils.MessageJSON{Code: 500, Message: fmt.Sprintf("Failed to create schedule: %v", err)}
 	}
 
-	var allSlots []Slot
+	var allSlots []models.Slot
     for _, dayOfWeek := range schedule.DaysOfWeek {
         slots := generateSlotsForCurrentWeek(schedule.RoomID, dayOfWeek, startTime, endTime)
         allSlots = append(allSlots, slots...)
@@ -65,15 +66,8 @@ func (r *ScheduleRepository) AddSchedule(schedule dto.CreateScheduleDTO) (string
 
 	 return scheduleID, utils.MessageJSON{}
 }
-
-type Slot struct {
-	RoomID    string
-	StartAt time.Time
-	EndAt   time.Time
-}
-
-func generateSlotsForCurrentWeek(roomID string, dayOfWeek int, startTime, endTime time.Time) []Slot {
-    var slots []Slot
+func generateSlotsForCurrentWeek(roomID string, dayOfWeek int, startTime, endTime time.Time) []models.Slot {
+    var slots []models.Slot
     
     now := time.Now()
     targetDate := getDateForDayOfWeek(now, dayOfWeek)
@@ -98,7 +92,7 @@ func generateSlotsForCurrentWeek(roomID string, dayOfWeek int, startTime, endTim
         }
         
         if current.After(time.Now()) {
-            slots = append(slots, Slot{
+            slots = append(slots, models.Slot{
                 RoomID:  roomID,
                 StartAt: current,
                 EndAt:   next,

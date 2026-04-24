@@ -47,9 +47,14 @@ func main() {
 	scheduleService := service.NewScheduleService(scheduleRepository)
 	scheduleHandler := handler.NewScheduleHandler(scheduleService)
 
+	slotsRepository := &repository.SlotsRepository{DB: db}
+	slotsService := service.NewSlotsService(slotsRepository)
+	slotsHandler := handler.NewSlotsHandler(slotsService)
+
 	handler.RegisterUserRoutes(r, userHandler)
 	handler.RegisterRoomRoutes(r, roomHandler)
 	handler.RegisterScheduleRoutes(r, scheduleHandler)
+	handler.RegisterSlotsRoutes(r, slotsHandler)
 	r.GET("/health", health)
 
 	if err := r.Run(":" + port); err != nil {
