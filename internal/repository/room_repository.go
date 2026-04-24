@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/sustatov027-max/room-booking/internal/dto"
 	"github.com/sustatov027-max/room-booking/internal/models"
@@ -42,11 +43,13 @@ func (r *RoomRepository) ListRooms() ([]models.Room, utils.MessageJSON) {
 func (r *RoomRepository) AddRoom(room dto.CreateRoomDTO) (string, utils.MessageJSON){
 	var UUID string
 
+	createdAt := time.Now().UTC()
+
 	err := r.DB.QueryRow(`
-				INSERT INTO rooms(name, description, capacity) 
-				VALUES ($1, $2, $3)
+				INSERT INTO rooms(name, description, capacity, created_at) 
+				VALUES ($1, $2, $3, $4)
 				RETURNING id;`,
-			room.Name, room.Description, room.Capacity,
+			room.Name, room.Description, room.Capacity, createdAt,
 		).Scan(&UUID)
 
 	if err != nil{

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/sustatov027-max/room-booking/internal/dto"
 	"github.com/sustatov027-max/room-booking/internal/models"
@@ -18,11 +19,13 @@ func (r *UserRepository) AddUser(user dto.RegisterUserDTO) (string, utils.Messag
 	var UUID string
 	log.Printf("[REPO] Executing query: INSERT INTO users...")
 
+	createdAt := time.Now().UTC()
+
 	err := r.DB.QueryRow(`
-		INSERT INTO users (email, password_hash, role)
-		VALUES ($1, $2, $3)
+		INSERT INTO users (email, password_hash, role, created_at)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id;`,
-		user.Email, user.Password, user.Role,
+		user.Email, user.Password, user.Role, createdAt,
 	).Scan(&UUID)
 
 	if err != nil {
@@ -53,7 +56,7 @@ func (r *UserRepository) GetAuthUserByEmail(email string) (models.AuthUser, util
 	return user, utils.MessageJSON{}
 }
 
-func (r *UserRepository) GetAuthUserByUUID(uuid string) (models.User, utils.MessageJSON){
+func (r *UserRepository) GetAuthUserByUUID(uuid string) (models.User, utils.MessageJSON) {
 	var user models.User
 	user.Uuid = uuid
 
@@ -61,7 +64,7 @@ func (r *UserRepository) GetAuthUserByUUID(uuid string) (models.User, utils.Mess
 			SELECT email, role, created_at
 			FROM users
 			WHERE id = $1;`,
-			uuid).Scan(&user.Email, &user.Role, &user.CreatedAt)
+		uuid).Scan(&user.Email, &user.Role, &user.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return models.User{}, utils.MessageJSON{Code: http.StatusUnauthorized, Message: "Invalid email or password"}

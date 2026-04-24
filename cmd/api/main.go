@@ -43,8 +43,13 @@ func main() {
 	roomService := service.NewRoomService(roomRepository)
 	roomHandler := handler.NewRoomHandler(roomService)
 
+	scheduleRepository := &repository.ScheduleRepository{DB: db}
+	scheduleService := service.NewScheduleService(scheduleRepository)
+	scheduleHandler := handler.NewScheduleHandler(scheduleService)
+
 	handler.RegisterUserRoutes(r, userHandler)
 	handler.RegisterRoomRoutes(r, roomHandler)
+	handler.RegisterScheduleRoutes(r, scheduleHandler)
 	r.GET("/health", health)
 
 	if err := r.Run(":" + port); err != nil {
