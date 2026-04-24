@@ -52,3 +52,22 @@ func (r *UserRepository) GetAuthUserByEmail(email string) (models.AuthUser, util
 
 	return user, utils.MessageJSON{}
 }
+
+func (r *UserRepository) GetAuthUserByUUID(uuid string) (models.User, utils.MessageJSON){
+	var user models.User
+	user.Uuid = uuid
+
+	err := r.DB.QueryRow(`
+			SELECT email, role, created_at
+			FROM users
+			WHERE id = $1;`,
+			uuid).Scan(&user.Email, &user.Role, &user.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.User{}, utils.MessageJSON{Code: http.StatusUnauthorized, Message: "Invalid email or password"}
+		}
+		return models.User{}, utils.MessageJSON{Code: 500, Message: err.Error()}
+	}
+
+	return user, utils.MessageJSON{}
+}

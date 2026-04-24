@@ -78,6 +78,7 @@
 | :--- | :--- | :--- | :--- |
 | POST | `/dummyLogin` | Получение тестового JWT токена | Public |
 | GET | `/rooms` | Получить список всех переговорок | Auth |
+| GET | `/auth/me` | Получить пользователя | Auth |
 | POST | `/admin/rooms` | Создать новую переговорку | Admin |
 | POST | `/admin/schedules` | Создать расписание для комнаты | Admin |
 | GET | `/slots` | Получить слоты (фильтры: room_id, date) | Auth |

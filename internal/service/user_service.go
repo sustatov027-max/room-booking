@@ -12,6 +12,7 @@ import (
 type UserRepository interface {
 	AddUser(user dto.RegisterUserDTO) (string, utils.MessageJSON)
 	GetAuthUserByEmail(email string) (models.AuthUser, utils.MessageJSON)
+	GetAuthUserByUUID(uuid string) (models.User, utils.MessageJSON)
 }
 
 type UserService struct {
@@ -48,4 +49,13 @@ func (s *UserService) LoginUser(user dto.LoginUserDTO) (string, utils.MessageJSO
 	}
 
 	return token, utils.MessageJSON{}
+}
+
+func (s *UserService) GetUser(userID string) (models.User, utils.MessageJSON){
+	authUser, message := s.rep.GetAuthUserByUUID(userID)
+	if message.Message != "" {
+		return models.User{}, message
+	}
+
+	return authUser, utils.MessageJSON{}
 }
