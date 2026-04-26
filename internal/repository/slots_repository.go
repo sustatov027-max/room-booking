@@ -12,7 +12,7 @@ type SlotsRepository struct {
 	DB *sql.DB
 }
 
-func (r *SlotsRepository) GetFilteredSlots(room_id string, date time.Time) ([]models.Slot, utils.MessageJSON) {
+func (r *SlotsRepository) GetFilteredSlots(room_id string, date time.Time) ([]models.GetSlot, utils.MessageJSON) {
 	var (
 		rows *sql.Rows
 		err  error
@@ -20,8 +20,10 @@ func (r *SlotsRepository) GetFilteredSlots(room_id string, date time.Time) ([]mo
 
 	if room_id == "" {
 		query := `
-        SELECT id, room_id, start_time, end_time, created_at
-        FROM slots
+        SELECT s.id, s.room_id, s.start_time, s.end_time, s.created_at,
+       	CASE WHEN b.id IS NOT NULL THEN 'booked' ELSE 'free' END AS status
+		FROM slots s
+		LEFT JOIN bookings b ON b.slot_id = s.id AND b.status = 'active'
         WHERE start_time >= $1
           AND start_time < $1 + interval '1 day'
           AND start_time > NOW()
@@ -30,8 +32,10 @@ func (r *SlotsRepository) GetFilteredSlots(room_id string, date time.Time) ([]mo
 		rows, err = r.DB.Query(query, date)
 	} else {
 		query := `
-        SELECT id, room_id, start_time, end_time, created_at
-        FROM slots
+        SELECT s.id, s.room_id, s.start_time, s.end_time, s.created_at,
+       	CASE WHEN b.id IS NOT NULL THEN 'booked' ELSE 'free' END AS status
+		FROM slots s
+		LEFT JOIN bookings b ON b.slot_id = s.id AND b.status = 'active'
         WHERE room_id = $1
           AND start_time >= $2
           AND start_time < $2 + interval '1 day'
@@ -46,15 +50,16 @@ func (r *SlotsRepository) GetFilteredSlots(room_id string, date time.Time) ([]mo
 	}
 	defer rows.Close()
 
-	var slots []models.Slot
+	var slots []models.GetSlot
 	for rows.Next() {
-		var slot models.Slot
+		var slot models.GetSlot
 		err := rows.Scan(
 			&slot.ID,
 			&slot.RoomID,
 			&slot.StartAt,
 			&slot.EndAt,
 			&slot.CreatedAt,
+			&slot.Status,
 		)
 		if err != nil {
 			return nil, utils.MessageJSON{Code: 500, Message: err.Error()}

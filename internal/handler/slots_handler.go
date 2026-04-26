@@ -15,7 +15,7 @@ func RegisterSlotsRoutes(r *gin.Engine, h *SlotsHandler) {
 }
 
 type SlotsServ interface {
-	GetFilteredSlots(room_id string, date string) ([]models.Slot, utils.MessageJSON)
+	GetFilteredSlots(room_id string, date string) ([]models.GetSlot, utils.MessageJSON)
 }
 
 type SlotsHandler struct {

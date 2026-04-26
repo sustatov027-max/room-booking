@@ -8,7 +8,7 @@ import (
 )
 
 type SlotsRepository interface {
-	GetFilteredSlots(room_id string, date time.Time) ([]models.Slot, utils.MessageJSON)
+	GetFilteredSlots(room_id string, date time.Time) ([]models.GetSlot, utils.MessageJSON)
 }
 
 type SlotsService struct {
@@ -19,10 +19,10 @@ func NewSlotsService(r SlotsRepository) *SlotsService {
 	return &SlotsService{rep: r}
 }
 
-func (s *SlotsService) GetFilteredSlots(room_id string, date string) ([]models.Slot, utils.MessageJSON) {
+func (s *SlotsService) GetFilteredSlots(room_id string, date string) ([]models.GetSlot, utils.MessageJSON) {
 	parsedDate, err := time.Parse("2006-01-02", date)
 	if err != nil {
-		return []models.Slot{}, utils.MessageJSON{
+		return []models.GetSlot{}, utils.MessageJSON{
 			Code:    400,
 			Message: "Invalid date format, use YYYY-MM-DD",
 		}
