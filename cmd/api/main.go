@@ -51,10 +51,15 @@ func main() {
 	slotsService := service.NewSlotsService(slotsRepository)
 	slotsHandler := handler.NewSlotsHandler(slotsService)
 
+	bookingRepository := &repository.BookingRepository{DB: db}
+	bookingService := service.NewBookingService(bookingRepository)
+	bookingHandler := handler.NewBookingHandler(bookingService)
+
 	handler.RegisterUserRoutes(r, userHandler)
 	handler.RegisterRoomRoutes(r, roomHandler)
 	handler.RegisterScheduleRoutes(r, scheduleHandler)
 	handler.RegisterSlotsRoutes(r, slotsHandler)
+	handler.RegisterBookingRoutes(r, bookingHandler)
 	r.GET("/health", health)
 
 	if err := r.Run(":" + port); err != nil {
