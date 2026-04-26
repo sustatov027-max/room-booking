@@ -6,11 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sustatov027-max/room-booking/internal/dto"
 	"github.com/sustatov027-max/room-booking/internal/middleware"
+	"github.com/sustatov027-max/room-booking/internal/models"
 	"github.com/sustatov027-max/room-booking/pkg/utils"
 )
 
 type BookingServ interface {
 	CreateBooking(dto.CreateBookingDTO) (string, utils.MessageJSON)
+	GetBookings(string) ([]models.Booking, utils.MessageJSON)
 }
 
 type BookingHandler struct {
@@ -25,6 +27,7 @@ func RegisterBookingRoutes(r *gin.Engine, h *BookingHandler) {
 	Bookings := r.Group("/bookings")
 	Bookings.Use(middleware.AuthMiddleware(), middleware.RequireRole("user"))
 	Bookings.POST("", h.CreateBooking)
+	Bookings.GET("/my", h.GetBookings)
 }
 
 func (h *BookingHandler) CreateBooking(ctx *gin.Context) {
@@ -51,4 +54,20 @@ func (h *BookingHandler) CreateBooking(ctx *gin.Context) {
 	}
 
 	ctx.IndentedJSON(http.StatusCreated, map[string]string{"uuid": uuid})
+}
+
+func (h *BookingHandler) GetBookings(ctx *gin.Context){
+	uuid, message := utils.GetUserID(ctx)
+	if message.Message != ""{
+		ctx.IndentedJSON(message.Code, map[string]string{"error": message.Message})
+		return
+	}
+
+	bookings, message := h.serv.GetBookings(uuid)
+	if message.Message != ""{
+		ctx.IndentedJSON(message.Code, map[string]string{"error": message.Message})
+		return
+	}
+
+	ctx.IndentedJSON(http.StatusOK, bookings)
 }
