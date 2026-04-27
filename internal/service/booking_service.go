@@ -8,7 +8,8 @@ import (
 
 type BookingRepository interface {
 	AddBooking(dto.CreateBookingDTO) (string, utils.MessageJSON)
-	GetBookingByUserID(string) ([]models.Booking, utils.MessageJSON)
+	GetBookingByUserID(string) ([]models.GetBooking, utils.MessageJSON)
+	DeleteBookingByID(string, string) (utils.MessageJSON)
 }
 
 type BookingService struct {
@@ -23,6 +24,10 @@ func (s *BookingService) CreateBooking(booking dto.CreateBookingDTO) (string, ut
 	return s.rep.AddBooking(booking)
 }
 
-func (s *BookingService) GetBookings(uuid string) ([]models.Booking, utils.MessageJSON){
+func (s *BookingService) GetBookings(uuid string) ([]models.GetBooking, utils.MessageJSON){
 	return s.rep.GetBookingByUserID(uuid)
+}
+
+func (s *BookingService) DeleteBooking(bookingID string, userID string) (utils.MessageJSON){
+	return s.rep.DeleteBookingByID(bookingID, userID)
 }

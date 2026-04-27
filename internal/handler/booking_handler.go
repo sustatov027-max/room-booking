@@ -12,7 +12,8 @@ import (
 
 type BookingServ interface {
 	CreateBooking(dto.CreateBookingDTO) (string, utils.MessageJSON)
-	GetBookings(string) ([]models.Booking, utils.MessageJSON)
+	GetBookings(string) ([]models.GetBooking, utils.MessageJSON)
+	DeleteBooking(string, string) (utils.MessageJSON)
 }
 
 type BookingHandler struct {
@@ -28,6 +29,7 @@ func RegisterBookingRoutes(r *gin.Engine, h *BookingHandler) {
 	Bookings.Use(middleware.AuthMiddleware(), middleware.RequireRole("user"))
 	Bookings.POST("", h.CreateBooking)
 	Bookings.GET("/my", h.GetBookings)
+	Bookings.DELETE("/:id", h.DeleteBooking)
 }
 
 func (h *BookingHandler) CreateBooking(ctx *gin.Context) {
@@ -70,4 +72,21 @@ func (h *BookingHandler) GetBookings(ctx *gin.Context){
 	}
 
 	ctx.IndentedJSON(http.StatusOK, bookings)
+}
+
+func (h *BookingHandler) DeleteBooking(ctx *gin.Context){
+	bookingID := ctx.Param("id")
+	userID, message := utils.GetUserID(ctx)
+	if message.Message != ""{
+		ctx.IndentedJSON(message.Code, map[string]string{"error": message.Message})
+		return
+	}
+
+	message = h.serv.DeleteBooking(bookingID, userID)
+	if message.Message != ""{
+		ctx.IndentedJSON(message.Code, map[string]string{"error": message.Message})
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }

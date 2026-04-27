@@ -29,21 +29,33 @@ func (r *BookingRepository) AddBooking(booking dto.CreateBookingDTO) (string, ut
 	return UUID, utils.MessageJSON{}
 }
 
-func (r *BookingRepository) GetBookingByUserID(uuid string) ([]models.Booking, utils.MessageJSON){
+func (r *BookingRepository) GetBookingByUserID(uuid string) ([]models.GetBooking, utils.MessageJSON) {
 	rows, err := r.DB.Query(`
-			SELECT id, slot_id, user_id, status, conference_link, created_at
-			FROM bookings
-			WHERE user_id = $1;`,
+			SELECT
+				b.id AS booking_id,
+				s.start_time AS booking_start,
+				s.end_time AS booking_end,
+				r.name AS room_name,
+				b.status,
+				b.conference_link,
+				b.created_at AS booking_created_at
+			FROM bookings b
+			JOIN slots s ON b.slot_id = s.id
+			JOIN rooms r ON s.room_id = r.id
+			WHERE b.user_id = $1
+				AND b.status = 'active'
+				AND s.start_time > NOW()
+			ORDER BY s.start_time ASC;`,
 		uuid)
 	if err != nil {
 		return nil, utils.MessageJSON{Code: 500, Message: err.Error()}
 	}
 	defer rows.Close()
 
-	bookings := make([]models.Booking, 0)
-	for rows.Next(){
-		var booking models.Booking
-		if err = rows.Scan(&booking.ID, &booking.SlotID, &booking.UserID, &booking.Status, &booking.ConferenceLink, &booking.CreatedAt); err != nil{
+	bookings := make([]models.GetBooking, 0)
+	for rows.Next() {
+		var booking models.GetBooking
+		if err = rows.Scan(&booking.ID, &booking.StartAt, &booking.EndAt, &booking.RoomName, &booking.Status, &booking.ConferenceLink, &booking.CreatedAt); err != nil {
 			return nil, utils.MessageJSON{Code: 500, Message: err.Error()}
 		}
 		bookings = append(bookings, booking)
@@ -54,4 +66,20 @@ func (r *BookingRepository) GetBookingByUserID(uuid string) ([]models.Booking, u
 	}
 
 	return bookings, utils.MessageJSON{}
+}
+
+func (r *BookingRepository) DeleteBookingByID(bookingID string, userID string) (utils.MessageJSON){
+	row := r.DB.QueryRow(`
+						UPDATE bookings
+						SET status = 'cancelled'
+						WHERE id = $1
+							AND user_id = $2;`,
+						bookingID, userID,
+						)
+		
+ 	if err := row.Err(); err != nil {
+		return utils.MessageJSON{Code: 500, Message: err.Error()}
+	}
+
+	return utils.MessageJSON{}
 }
