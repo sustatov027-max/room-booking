@@ -32,7 +32,7 @@ func (h *SlotsHandler) GetSlots(ctx *gin.Context) {
 
 	slots, message := h.serv.GetFilteredSlots(room_id, date)
 	if message.Message != "" {
-		ctx.IndentedJSON(message.Code, map[string]string{"error": message.Message})
+		ctx.IndentedJSON(message.Code, gin.H{"error": message.Message})
 		return
 	}
 

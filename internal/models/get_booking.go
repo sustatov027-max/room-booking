@@ -4,6 +4,7 @@ import "time"
 
 type GetBooking struct {
 	ID             string    `json:"id"`
+	UserEmail      string    `json:"user_email"`
 	StartAt        string    `json:"start_at"`
 	EndAt          string    `json:"end_at"`
 	RoomName       string    `json:"room_name"`

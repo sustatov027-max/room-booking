@@ -30,15 +30,15 @@ func (h *ScheduleHandler) CreateSchedule(ctx *gin.Context) {
 
 	err := ctx.ShouldBindBodyWithJSON(&body)
 	if err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	UUID, message := h.serv.CreateSchedule(body)
 	if message.Message != ""{
-		ctx.IndentedJSON(message.Code, map[string]string{"error": message.Message})
+		ctx.IndentedJSON(message.Code, gin.H{"error": message.Message})
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusCreated, map[string]string{"uuid": UUID})
+	ctx.IndentedJSON(http.StatusCreated, gin.H{"uuid": UUID})
 }
