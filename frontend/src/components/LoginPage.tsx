@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { useAppDispatch } from '../redux/hooks'
 import { setToken } from '../redux/jwtSlice'
+import { setUser } from '../redux/userSlice'
 import {
   Box,
   Container,
@@ -31,28 +33,33 @@ const LoginPage = () => {
     setLoading(true)
 
     try {
-      const response = await fetch('http://localhost:8080/auth/login', {
-        method: 'POST',
+      const response = await axios.post('http://localhost:8080/auth/login', {
+        email,
+        password,
+      }, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
       })
 
-      const data = await response.json()
+      const token = response.data.token
+      localStorage.setItem('jwtToken', token)
+      dispatch(setToken(token))
 
-      if (response.ok) {
-        const token = data.token
-        localStorage.setItem('jwtToken', token)
-        dispatch(setToken(token))
-        navigate('/')
-      } else {
-        setError(data.message || 'Ошибка входа. Проверьте данные.')
-      }
-    } catch (error) {
+      const userResponse = await axios.get('http://localhost:8080/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      dispatch(setUser(userResponse.data))
+      navigate('/')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       console.error('Ошибка:', error)
-      setError('Ошибка входа. Проверьте соединение с сервером.')
+      const errorMessage = error.response?.data?.message || 'Ошибка входа. Проверьте данные.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

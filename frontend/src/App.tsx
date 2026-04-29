@@ -6,6 +6,7 @@ import { setToken, clearToken, selectToken } from './redux/jwtSlice'
 import HomePage from './components/HomePage'
 import LoginPage from './components/LoginPage'
 import RegisterPage from './components/RegisterPage'
+import { clearUser, setUser } from './redux/userSlice'
 
 function App() {
   const dispatch = useAppDispatch()
@@ -34,17 +35,22 @@ function App() {
 
         if (response.status === 200) {
           dispatch(setToken(storedToken))
+          dispatch(setUser(response.data))
         } else {
           localStorage.removeItem('jwtToken')
           dispatch(clearToken())
+          dispatch(clearUser())
         }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         if (error.response?.status === 401) {
           localStorage.removeItem('jwtToken')
           dispatch(clearToken())
+          dispatch(clearUser())
         } else {
           console.error('Ошибка проверки токена:', error)
           dispatch(clearToken())
+          dispatch(clearUser())
         }
       } finally {
         setIsLoading(false)
