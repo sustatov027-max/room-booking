@@ -103,6 +103,7 @@ func (h *BookingHandler) GetAllBookings(ctx *gin.Context) {
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid page"})
+		return
 	}
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {

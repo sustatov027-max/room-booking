@@ -24,6 +24,8 @@ func NewRoomHandler(s RoomServ) *RoomHandler {
 }
 
 func RegisterRoomRoutes(r *gin.Engine, h *RoomHandler) {
+	r.Static("/static", ".../../static")
+
 	rooms := r.Group("/rooms")
 	rooms.Use(middleware.AuthMiddleware(), middleware.RequireRole("user"))
 	rooms.GET("", h.GetRooms)

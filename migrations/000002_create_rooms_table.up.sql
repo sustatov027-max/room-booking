@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
     capacity INT,
+    image VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

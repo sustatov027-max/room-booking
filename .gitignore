@@ -25,4 +25,7 @@ build-errors.log
 vendor/
 go.work.sum
 
+# static files
+static/
+
 PLAN.md

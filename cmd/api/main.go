@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/sustatov027-max/room-booking/internal/handler"
@@ -34,6 +35,7 @@ func main() {
 	port := cfg.Port
 
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	userRepository := &repository.UserRepository{DB: db}
 	userService := service.NewUserService(userRepository)

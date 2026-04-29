@@ -7,5 +7,6 @@ type Room struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Capacity    int       `json:"capacity"`
+	Image       string    `json:"image"`
 	CreatedAt   time.Time `json:"created_at"`
 }

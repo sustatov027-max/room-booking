@@ -15,7 +15,7 @@ type RoomRepository struct {
 
 func (r *RoomRepository) ListRooms() ([]models.Room, utils.MessageJSON) {
 	rows, err := r.DB.Query(`
-		SELECT id, name, description, capacity, created_at
+		SELECT id, name, description, capacity, image, created_at
 		FROM rooms
 		ORDER BY name;
 	`)
@@ -27,7 +27,7 @@ func (r *RoomRepository) ListRooms() ([]models.Room, utils.MessageJSON) {
 	rooms := make([]models.Room, 0)
 	for rows.Next() {
 		var room models.Room
-		if err = rows.Scan(&room.ID, &room.Name, &room.Description, &room.Capacity, &room.CreatedAt); err != nil {
+		if err = rows.Scan(&room.ID, &room.Name, &room.Description, &room.Capacity, &room.Image, &room.CreatedAt); err != nil {
 			return nil, utils.MessageJSON{Code: 500, Message: err.Error()}
 		}
 		rooms = append(rooms, room)
@@ -46,10 +46,10 @@ func (r *RoomRepository) AddRoom(room dto.CreateRoomDTO) (string, utils.MessageJ
 	createdAt := time.Now().UTC()
 
 	err := r.DB.QueryRow(`
-				INSERT INTO rooms(name, description, capacity, created_at) 
-				VALUES ($1, $2, $3, $4)
+				INSERT INTO rooms(name, description, capacity, image, created_at) 
+				VALUES ($1, $2, $3, $4, $5)
 				RETURNING id;`,
-			room.Name, room.Description, room.Capacity, createdAt,
+			room.Name, room.Description, room.Capacity, room.Image, createdAt,
 		).Scan(&UUID)
 
 	if err != nil{
