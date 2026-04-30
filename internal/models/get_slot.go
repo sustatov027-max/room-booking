@@ -2,5 +2,6 @@ package models
 
 type GetSlot struct {
 	Slot
-	Status string `json:"status"`
+	RoomName string `json:"room_name"`
+	Status   string `json:"status"`
 }

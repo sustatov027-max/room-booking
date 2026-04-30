@@ -7,7 +7,7 @@ import LoginPage from './components/LoginPage'
 import RegisterPage from './components/RegisterPage'
 import { clearUser, selectUser, setUser } from './redux/userSlice'
 import { Typography } from '@mui/material'
-import AdminPanel from './components/AdminPanel'
+import AdminPanel from './components/AdminPanel/AdminPanel'
 import UserPage from './components/UserPage'
 import UnauthorizedPage from './components/UnauthorizedPage'
 
