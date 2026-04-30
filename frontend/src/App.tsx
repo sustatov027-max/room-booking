@@ -3,14 +3,18 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import axios from 'axios'
 import { useAppDispatch, useAppSelector } from './redux/hooks'
 import { setToken, clearToken, selectToken } from './redux/jwtSlice'
-import HomePage from './components/HomePage'
 import LoginPage from './components/LoginPage'
 import RegisterPage from './components/RegisterPage'
-import { clearUser, setUser } from './redux/userSlice'
+import { clearUser, selectUser, setUser } from './redux/userSlice'
+import { Typography } from '@mui/material'
+import AdminPanel from './components/AdminPanel'
+import UserPage from './components/UserPage'
+import UnauthorizedPage from './components/UnauthorizedPage'
 
 function App() {
   const dispatch = useAppDispatch()
   const token = useAppSelector(selectToken)
+  const user = useAppSelector(selectUser)
   const [isLoading, setIsLoading] = useState(true)
   const hasCheckedAuth = useRef(false)
 
@@ -61,20 +65,68 @@ function App() {
   }, [dispatch])
 
   if (isLoading) {
-    return <div>Загрузка...</div>
+    return (
+      <>
+        <Typography component={"h1"} variant='h4' sx={{
+          display: 'flex',
+          width: '100%',
+          height: '100vh',
+          textAlign:'center',
+          justifyContent:'center',
+          alignItems:'center'
+        }} >Загрузка...</Typography>
+      </>
+    )
   }
 
   const isAuthenticated = !!token
+  const role = user?.role
+
+  console.log(role)
+
+  const checkAccess = (allowedRoles?: string[]) => {
+    if (!isAuthenticated) return false
+    if (!allowedRoles) return true
+    return allowedRoles.includes(role || '')
+  }
 
   return (
     <Router>
       <Routes>
-        <Route
-          path="/"
-          element={isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />}
-        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route 
+          path="/" 
+          element={
+            !isAuthenticated ? <Navigate to="/login" replace /> :
+            role === 'admin' ? <Navigate to="/admin" replace /> :
+            role === 'user' ? <Navigate to="/user" replace /> :
+            <Navigate to="/login" replace />
+          } 
+        />
+
+        <Route 
+          path="/admin" 
+          element={
+            checkAccess(['admin']) 
+              ? <AdminPanel /> 
+              : <Navigate to={isAuthenticated ? "/unauthorized" : "/login"} replace />
+          } 
+        />
+
+        <Route 
+          path="/user"
+          element={
+            checkAccess(['user'])
+            ? <UserPage />
+            : <Navigate to={isAuthenticated ? "/unauthorized" : "/login"} replace />
+          }
+        />
+
+          <Route
+            path="/unauthorized"
+            element={<UnauthorizedPage />}
+          />
       </Routes>
     </Router>
   )

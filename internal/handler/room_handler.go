@@ -27,7 +27,7 @@ func RegisterRoomRoutes(r *gin.Engine, h *RoomHandler) {
 	r.Static("/static", ".../../static")
 
 	rooms := r.Group("/rooms")
-	rooms.Use(middleware.AuthMiddleware(), middleware.RequireRole("user"))
+	rooms.Use(middleware.AuthMiddleware())
 	rooms.GET("", h.GetRooms)
 
 	admin := r.Group("/admin")
