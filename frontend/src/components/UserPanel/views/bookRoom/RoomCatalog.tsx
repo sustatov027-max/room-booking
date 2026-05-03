@@ -1,38 +1,21 @@
-import { useEffect, useState } from "react";
-import { Box, Paper, Stack, Typography } from "@mui/material";
-import axios from "axios";
-import { useApi } from "../../../hooks/useApi";
+import { Box, Button, CircularProgress, Paper, Stack, Typography } from "@mui/material";
+import { API_URL } from "./constants";
+import type { Room } from "./types";
 
-const API_URL = "http://localhost:8080";
+interface RoomCatalogProps {
+  rooms: Room[];
+  loading: boolean;
+  onSelectRoom: (room: Room) => void;
+}
 
-type Room = {
-  id: string;
-  name: string;
-  description: string;
-  capacity: number;
-  image: string;
-};
-
-const RoomsView = () => {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const { setLoading, setError, authHeaders } = useApi();
-
-  useEffect(() => {
-    const loadRooms = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const response = await axios.get(`${API_URL}/rooms`, { headers: authHeaders });
-        setRooms(response.data || []);
-      } catch (e) {
-        console.error(e);
-        setError("Не удалось загрузить список комнат");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadRooms();
-  }, [setLoading, setError, authHeaders]);
+const RoomCatalog = ({ rooms, loading, onSelectRoom }: RoomCatalogProps) => {
+  if (loading) {
+    return (
+      <Stack sx={{ py: 4, alignItems: "center" }}>
+        <CircularProgress />
+      </Stack>
+    );
+  }
 
   return (
     <Stack spacing={1.5}>
@@ -43,7 +26,7 @@ const RoomsView = () => {
           sx={{
             p: 2,
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "180px 1fr" },
+            gridTemplateColumns: { xs: "1fr", sm: "180px 1fr auto" },
             gap: 2,
             alignItems: "center",
           }}
@@ -60,7 +43,6 @@ const RoomsView = () => {
                 borderRadius: 1,
                 border: "1px solid",
                 borderColor: "divider",
-                bgcolor: "action.hover",
               }}
             />
           ) : (
@@ -81,10 +63,22 @@ const RoomsView = () => {
               {room.description || "Без описания"}
             </Typography>
           </Stack>
+          <Button
+            variant="contained"
+            onClick={() => onSelectRoom(room)}
+            sx={{ alignSelf: { xs: "stretch", sm: "center" } }}
+          >
+            Забронировать
+          </Button>
         </Paper>
       ))}
+      {rooms.length === 0 && (
+        <Typography variant="body2" color="text.secondary">
+          Пока нет доступных комнат.
+        </Typography>
+      )}
     </Stack>
   );
 };
 
-export default RoomsView;
+export default RoomCatalog;

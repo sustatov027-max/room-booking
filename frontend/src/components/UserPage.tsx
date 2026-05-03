@@ -1,16 +1,8 @@
-import { useEffect } from "react";
-import Header from "./Header";
-import { Container } from "@mui/material";
+import UserPanel from "./UserPanel/UserPanel";
 
 const UserPage = () => {
-    useEffect(() => {
-        document.title = 'Главная';
-        }, []);
-
     return(
-        <Container maxWidth="lg">
-            <Header/>
-        </Container>
+        <UserPanel />
     )
 }
 

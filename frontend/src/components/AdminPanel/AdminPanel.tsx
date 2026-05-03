@@ -7,7 +7,7 @@ import AdminContent from "./AdminContent";
 type AdminView = "create-room" | "rooms" | "slots" | "bookings";
 
 const AdminPanel = () => {
-  const [activeView, setActiveView] = useState<AdminView>("create-room");
+  const [activeView, setActiveView] = useState<AdminView>("rooms");
 
   useEffect(() => {
     document.title = "Админ панель";

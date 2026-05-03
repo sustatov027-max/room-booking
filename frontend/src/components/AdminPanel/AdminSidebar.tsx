@@ -9,8 +9,8 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ activeView, onViewChange }: AdminSidebarProps) => {
   const menuItems: Array<{ key: AdminView; label: string }> = [
-    { key: "create-room", label: "Создать комнату" },
     { key: "rooms", label: "Все комнаты" },
+    { key: "create-room", label: "Создать комнату" },
     { key: "slots", label: "Все слоты" },
     { key: "bookings", label: "Все брони" },
   ];
