@@ -14,6 +14,9 @@ const CreateRoomForm = ({ onSuccess }: CreateRoomFormProps) => {
   const [roomDescription, setRoomDescription] = useState("");
   const [roomCapacity, setRoomCapacity] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [schedulesDays, setSchedulesDays] = useState<number[]>([]);
+  const [scheduleStartTime, setScheduleStartTime] = useState("09:00");
+  const [scheduleEndTime, setScheduleEndTime] = useState("18:00");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { setLoading, setError, authHeaders } = useApi();
 
@@ -55,36 +58,74 @@ const CreateRoomForm = ({ onSuccess }: CreateRoomFormProps) => {
     await saveFileLocally(file);
   };
 
-  const handleCreateRoom = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddDay = (day: string) => {
+    const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+    const dayIndex = (days.indexOf(day) + 1) % 7; // Индекс с воскресенья: 0=Вс, 1=Пн, ..., 6=Сб
+    if (schedulesDays.includes(dayIndex)) {
+      setSchedulesDays(schedulesDays.filter((d) => d !== dayIndex));
+    } else {
+      setSchedulesDays([...schedulesDays, dayIndex]);
+    }
+  };
+
+  const handleCreateRoom = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!roomName.trim() || !roomCapacity.trim()) {
       setError("Укажите название комнаты и вместимость");
       return;
     }
 
-    const payload = {
-    name: roomName,
-    description: roomDescription,
-    capacity: Number(roomCapacity),
-    image: imageFile ? `static/rooms/${imageFile.name}` : null,
-  };
+    const createRoomData = {
+      name: roomName,
+      description: roomDescription,
+      capacity: Number(roomCapacity),
+      image: imageFile ? `static/rooms/${imageFile.name}` : null,
+    };
 
-  console.log("Creating room with data:", payload);
+    console.log("Creating room with data:", createRoomData);
+    console.log("Selected schedule days:", schedulesDays);
+    console.log("Schedule start time:", scheduleStartTime);
+    console.log("Schedule end time:", scheduleEndTime);
 
-  setLoading(true);
-  setError("");
+    setLoading(true);
+    setError("");
 
-  try {
-    await axios.post(`${API_URL}/admin/rooms`, payload, {
-      headers: { ...authHeaders, "Content-Type": "application/json" },
-    });
+    try {
+      const response = await axios.post(`${API_URL}/admin/rooms`, createRoomData, {
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+      });
 
-      onSuccess("Комната успешно создана");
       setRoomName("");
       setRoomDescription("");
       setRoomCapacity("");
       setImageFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+
+      const convertToUTC = (time: string): string => {
+        const [hours, minutes] = time.split(':').map(Number);
+        const localDate = new Date();
+        localDate.setHours(hours, minutes, 0, 0);
+        const utcHours = localDate.getUTCHours();
+        const utcMinutes = localDate.getUTCMinutes();
+        return `${utcHours.toString().padStart(2, '0')}:${utcMinutes.toString().padStart(2, '0')}:00`;
+      };
+
+      const createRoomScheduleData = {
+        room_id: response.data.uuid,
+        days_of_week: schedulesDays,
+        start_time: convertToUTC(scheduleStartTime),
+        end_time: convertToUTC(scheduleEndTime)
+      }
+
+      await axios.post(`${API_URL}/admin/schedules`, createRoomScheduleData, {
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+      });
+
+      setSchedulesDays([]);
+      setScheduleStartTime("09:00");
+      setScheduleEndTime("18:00");
+
+      onSuccess("Комната успешно создана");
     } catch (e) {
       console.error(e);
       setError("Не удалось создать комнату");
@@ -121,6 +162,43 @@ const CreateRoomForm = ({ onSuccess }: CreateRoomFormProps) => {
           }}
           required
         />
+
+        <Typography variant="h6">Дни расписания</Typography>
+        <Stack direction="row" spacing={2}>
+          {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+            <Button
+              key={day}
+              variant={schedulesDays.includes((["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].indexOf(day) + 1) % 7) ? "contained" : "outlined"}
+              onClick={handleAddDay.bind(null, day)}>
+              {day}
+            </Button>
+          ))}
+        </Stack>
+
+        <Typography variant="h6">Время расписания</Typography>
+        <Stack direction="row" spacing={2}>
+          <TextField
+            label="Начало"
+            type="time"
+            value={scheduleStartTime}
+            onChange={(e) => setScheduleStartTime(e.target.value)}
+            slotProps={{
+              inputLabel: { shrink: true },
+              htmlInput: { step: 1800 }
+            }}
+          />
+          <TextField
+            label="Окончание"
+            type="time"
+            value={scheduleEndTime}
+            onChange={(e) => setScheduleEndTime(e.target.value)}
+            slotProps={{
+              inputLabel: { shrink: true },
+              htmlInput: { step: 1800 }
+            }}
+          />
+        </Stack>
+        
         <Button component="label" variant="outlined">
           {imageFile ? "Изменить изображение" : "Загрузить изображение"}
           <input
