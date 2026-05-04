@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/sustatov027-max/room-booking/internal/dto"
@@ -40,7 +41,7 @@ func (r *RoomRepository) ListRooms() ([]models.Room, utils.MessageJSON) {
 	return rooms, utils.MessageJSON{}
 }
 
-func (r *RoomRepository) AddRoom(room dto.CreateRoomDTO) (string, utils.MessageJSON){
+func (r *RoomRepository) AddRoom(room dto.CreateRoomDTO) (string, utils.MessageJSON) {
 	var UUID string
 
 	createdAt := time.Now().UTC()
@@ -49,12 +50,32 @@ func (r *RoomRepository) AddRoom(room dto.CreateRoomDTO) (string, utils.MessageJ
 				INSERT INTO rooms(name, description, capacity, image, created_at) 
 				VALUES ($1, $2, $3, $4, $5)
 				RETURNING id;`,
-			room.Name, room.Description, room.Capacity, room.Image, createdAt,
-		).Scan(&UUID)
+		room.Name, room.Description, room.Capacity, room.Image, createdAt,
+	).Scan(&UUID)
 
-	if err != nil{
-		return "", utils.MessageJSON{Code:500, Message: err.Error()}
+	if err != nil {
+		return "", utils.MessageJSON{Code: 500, Message: err.Error()}
 	}
 
 	return UUID, utils.MessageJSON{}
+}
+
+func (r *RoomRepository) DeleteRoomByID(roomID string) utils.MessageJSON {
+	result, err := r.DB.Exec(`
+		DELETE FROM rooms
+		WHERE id = $1;
+	`, roomID)
+	if err != nil {
+		return utils.MessageJSON{Code: 500, Message: err.Error()}
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return utils.MessageJSON{Code: 500, Message: err.Error()}
+	}
+	if rowsAffected == 0 {
+		return utils.MessageJSON{Code: 404, Message: errors.New("room not found").Error()}
+	}
+
+	return utils.MessageJSON{}
 }

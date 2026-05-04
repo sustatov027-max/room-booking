@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Stack, Paper, Typography } from "@mui/material";
+import { Pagination, Paper, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { useApi } from "../../../hooks/useApi";
 
@@ -14,8 +14,18 @@ type Booking = {
   created_at: string;
 };
 
+type PaginatedBookingsResponse = {
+  bookings: Booking[];
+  page: number;
+  limit: number;
+  total: number;
+};
+
 const BookingsView = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
   const { setLoading, setError, authHeaders } = useApi();
 
   const formatDateTime = (isoDate: string) => {
@@ -37,9 +47,17 @@ const BookingsView = () => {
       setLoading(true);
       setError("");
       try {
-        const response = await axios.get(`${API_URL}/admin/bookings`, { headers: authHeaders });
-        const bookingItems = response.data?.bookings || response.data || [];
-        setBookings(bookingItems);
+        const response = await axios.get<PaginatedBookingsResponse>(`${API_URL}/admin/bookings`, {
+          headers: authHeaders,
+          params: {
+            page,
+            limit: pageSize,
+          },
+        });
+        setBookings(response.data?.bookings || []);
+        setPage(response.data?.page || page);
+        setPageSize(response.data?.limit || pageSize);
+        setTotal(response.data?.total || 0);
       } catch (e) {
         console.error(e);
         setError("Не удалось загрузить список бронирований");
@@ -48,7 +66,9 @@ const BookingsView = () => {
       }
     };
     loadBookings();
-  }, [setLoading, setError, authHeaders]);
+  }, [setLoading, setError, authHeaders, page, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <Stack spacing={1.5}>
@@ -61,6 +81,21 @@ const BookingsView = () => {
           <Typography variant="body2">Пользователь: {booking.user_email || "—"}</Typography>
         </Paper>
       ))}
+      {bookings.length === 0 && (
+        <Typography variant="body2" color="text.secondary">
+          Брони пока не найдены.
+        </Typography>
+      )}
+      {total > 0 && (
+        <Stack sx={{ alignItems: "center", pt: 1 }}>
+          <Pagination
+            color="primary"
+            count={totalPages}
+            page={page}
+            onChange={(_, nextPage) => setPage(nextPage)}
+          />
+        </Stack>
+      )}
     </Stack>
   );
 };

@@ -9,6 +9,7 @@ import (
 type RoomRepository interface {
 	ListRooms() ([]models.Room, utils.MessageJSON)
 	AddRoom(dto.CreateRoomDTO) (string, utils.MessageJSON)
+	DeleteRoomByID(string) utils.MessageJSON
 }
 
 type RoomService struct {
@@ -23,6 +24,10 @@ func (s *RoomService) ListRooms() ([]models.Room, utils.MessageJSON) {
 	return s.rep.ListRooms()
 }
 
-func (s *RoomService) CreateRoom(room dto.CreateRoomDTO) (string, utils.MessageJSON){
+func (s *RoomService) CreateRoom(room dto.CreateRoomDTO) (string, utils.MessageJSON) {
 	return s.rep.AddRoom(room)
+}
+
+func (s *RoomService) DeleteRoom(roomID string) utils.MessageJSON {
+	return s.rep.DeleteRoomByID(roomID)
 }

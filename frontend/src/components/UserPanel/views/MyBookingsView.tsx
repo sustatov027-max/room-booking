@@ -61,6 +61,9 @@ const MyBookingsView = ({ bookingsVersion, onError, onSuccess }: MyBookingsViewP
   }, [authHeaders, bookingsVersion]);
 
   const handleCancelBooking = async (bookingId: string) => {
+    const confirmed = window.confirm("Отменить эту бронь?");
+    if (!confirmed) return;
+
     setCancellingId(bookingId);
     onError("");
     try {

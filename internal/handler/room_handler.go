@@ -13,6 +13,7 @@ import (
 type RoomServ interface {
 	ListRooms() ([]models.Room, utils.MessageJSON)
 	CreateRoom(dto.CreateRoomDTO) (string, utils.MessageJSON)
+	DeleteRoom(string) utils.MessageJSON
 }
 
 type RoomHandler struct {
@@ -33,6 +34,7 @@ func RegisterRoomRoutes(r *gin.Engine, h *RoomHandler) {
 	admin := r.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.RequireRole("admin"))
 	admin.POST("/rooms", h.CreateRoom)
+	admin.DELETE("/rooms/:id", h.DeleteRoom)
 }
 
 func (h *RoomHandler) GetRooms(ctx *gin.Context) {
@@ -45,20 +47,32 @@ func (h *RoomHandler) GetRooms(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, rooms)
 }
 
-func (h *RoomHandler) CreateRoom(ctx *gin.Context){
+func (h *RoomHandler) CreateRoom(ctx *gin.Context) {
 	var body dto.CreateRoomDTO
 
 	err := ctx.ShouldBindBodyWithJSON(&body)
-	if err != nil{
+	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	uuid, message := h.serv.CreateRoom(body)
-	if message.Message != ""{
+	if message.Message != "" {
 		ctx.IndentedJSON(message.Code, gin.H{"error": message.Message})
 		return
 	}
 
 	ctx.IndentedJSON(http.StatusCreated, gin.H{"uuid": uuid})
+}
+
+func (h *RoomHandler) DeleteRoom(ctx *gin.Context) {
+	roomID := ctx.Param("id")
+
+	message := h.serv.DeleteRoom(roomID)
+	if message.Message != "" {
+		ctx.IndentedJSON(message.Code, gin.H{"error": message.Message})
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
