@@ -77,6 +77,8 @@ const SlotsView = () => {
     loadSlots();
   }, [setLoading, setError, authHeaders, selectedDate, selectedRoomId]);
 
+  // TODO Сделать отображение полей в видк таблицы
+
   return (
     <Stack spacing={1.5}>
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>

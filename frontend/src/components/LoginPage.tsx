@@ -91,15 +91,10 @@ const LoginPage = () => {
             borderRadius: 2,
           }}
         >
-          <Box
-            sx={{
-              backgroundColor: '#1976d2',
-              borderRadius: '50%',
-              padding: 1.5,
-              marginBottom: 2,
-            }}
-          >
-          </Box>
+          <img 
+                src="/company.png"
+                style={{ height: '50px', width: 'auto', marginBottom: 5 }}
+          />
 
           <Typography component="h1" variant="h4" sx={{ marginBottom: 3, fontWeight: 600 }}>
             Вход в систему
@@ -189,7 +184,7 @@ const LoginPage = () => {
           </Box>
 
           <Typography variant="body2" color="textSecondary" sx={{ marginTop: 3, textAlign: 'center' }}>
-            © 2026 Система бронирования комнат
+            © 2026 RB-automatics
           </Typography>
         </Paper>
       </Box>

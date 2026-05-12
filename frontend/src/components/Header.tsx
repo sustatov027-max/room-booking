@@ -16,15 +16,18 @@ const Header = () => {
 
             padding:2
         }}>
+            <img 
+                src="/company.png"
+                style={{ height: '50px', width: 'auto' }}/>
             <Typography component={'h1'} variant="h4" sx={{
                 ml:2
             }}>
-                Система бронирования переговорок
+                Система бронирования переговорных комнат
             </Typography>
             <Button
             onClick={handleExit}><LogoutIcon sx={{fontSize:"28px"}}/></Button>
         </Box>
-        <Divider variant="middle" sx={{
+        <Divider variant="fullWidth" sx={{
             border:'2px solid rgba(73, 139, 214, 0.9)',
             mb:3
         }}></Divider>

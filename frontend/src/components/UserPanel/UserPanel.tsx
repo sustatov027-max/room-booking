@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, Container } from "@mui/material";
 import Header from "../Header";
+import Footer from "../Footer"
 import UserSidebar from "./UserSidebar";
 import UserContent from "./UserContent";
 
@@ -20,6 +21,7 @@ const UserPanel = () => {
         <UserSidebar activeView={activeView} onViewChange={setActiveView} />
         <UserContent activeView={activeView} />
       </Box>
+      <Footer />
     </Container>
   );
 };

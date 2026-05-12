@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, Container } from "@mui/material";
 import Header from "../Header";
+import Footer from "../Footer";
 import AdminSidebar from "./AdminSidebar";
 import AdminContent from "./AdminContent";
 
@@ -20,6 +21,7 @@ const AdminPanel = () => {
         <AdminSidebar activeView={activeView} onViewChange={setActiveView} />
         <AdminContent activeView={activeView} />
       </Box>
+      <Footer />
     </Container>
   );
 };
