@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Chip, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import { useApi } from "../../../hooks/useApi";
 
@@ -77,7 +77,35 @@ const SlotsView = () => {
     loadSlots();
   }, [setLoading, setError, authHeaders, selectedDate, selectedRoomId]);
 
-  // TODO Сделать отображение полей в видк таблицы
+  const formatTime = (isoDate: string) => {
+    try {
+      return new Date(isoDate).toLocaleTimeString("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return isoDate;
+    }
+  };
+
+  const getStatus = (slot: Slot) => {
+    if (slot.status) return slot.status;
+    if (slot.is_booked) return "booked";
+    return "free";
+  };
+
+  const groupedByTime = slots.reduce<Record<string, Slot[]>>((acc, slot) => {
+    const key = `${formatTime(slot.start_at)} — ${formatTime(slot.end_at)}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(slot);
+    return acc;
+  }, {});
+
+  const sortedTimeGroups = Object.entries(groupedByTime).sort((a, b) => {
+    const aTime = new Date(a[1][0].start_at).getTime();
+    const bTime = new Date(b[1][0].start_at).getTime();
+    return aTime - bTime;
+  });
 
   return (
     <Stack spacing={1.5}>
@@ -105,14 +133,41 @@ const SlotsView = () => {
           ))}
         </TextField>
       </Stack>
-      {slots.map((slot) => (
-        <Paper key={slot.id} variant="outlined" sx={{ p: 2 }}>
-          <Typography sx={{ fontWeight: 700 }}>Комната: {slot.room_name || slot.room_id}</Typography>
-          <Typography variant="body2">Начало: {formatDateTime(slot.start_at)}</Typography>
-          <Typography variant="body2">Окончание: {formatDateTime(slot.end_at)}</Typography>
-          {slot.status && <Typography variant="body2">Статус: {slot.status}</Typography>}
+       {sortedTimeGroups.map(([timeRange, timeSlots]) => (
+        <Paper key={timeRange} variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {timeRange}
+            </Typography>
+
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+              {timeSlots.map((slot) => {
+                const status = getStatus(slot);
+                const chipColor = status === "booked" ? "error" : "success";
+                const label = status === "booked" ? "Занят" : "Свободен";
+
+                return (
+                  <Paper key={slot.id} variant="outlined" sx={{ p: 1.25, minWidth: 220, flex: "1 1 220px" }}>
+                    <Typography sx={{ fontWeight: 700 }}>{slot.room_name || slot.room_id}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.75 }}>
+                      {formatDateTime(slot.start_at)}
+                    </Typography>
+                    <Chip size="small" color={chipColor} label={label} />
+                  </Paper>
+                );
+              })}
+            </Stack>
+          </Stack>
         </Paper>
       ))}
+
+      {sortedTimeGroups.length === 0 && (
+        <Paper variant="outlined" sx={{ p: 3, textAlign: "center", borderRadius: 3 }}>
+          <Typography variant="body2" color="text.secondary">
+            Слоты на выбранную дату не найдены
+          </Typography>
+        </Paper>
+      )}
     </Stack>
   );
 };
