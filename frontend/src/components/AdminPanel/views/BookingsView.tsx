@@ -8,6 +8,8 @@ const API_URL = "http://localhost:8080";
 type Booking = {
   id: string;
   user_email?: string;
+  start_at: string;
+  end_at: string;
   room_name?: string;
   slot_id: string;
   status: string;
@@ -77,6 +79,7 @@ const BookingsView = () => {
           <Typography sx={{ fontWeight: 700 }}>Бронь #{booking.id.slice(0, 8)}</Typography>
           <Typography variant="body2">Статус: {booking.status}</Typography>
           <Typography variant="body2">Создано: {formatDateTime(booking.created_at)}</Typography>
+          <Typography variant="body2">Период: {formatDateTime(booking.start_at)} - {formatDateTime(booking.end_at)}</Typography>
           <Typography variant="body2">Комната: {booking.room_name || "—"}</Typography>
           <Typography variant="body2">Пользователь: {booking.user_email || "—"}</Typography>
         </Paper>
