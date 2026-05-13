@@ -93,7 +93,7 @@ const BookingsView = () => {
               <Divider />
 
               <Stack direction={{ xs: "column", md: "row" }} spacing={1.5}>
-                <Stack spacing={0.5} sx={{ flex: 1 }}>
+                <Stack spacing={0.5} sx={{ flex: 1.3 }}>
                   <Typography variant="caption" color="text.secondary">Период</Typography>
                   <Typography variant="body2">{formatDateTime(booking.start_at)} — {formatDateTime(booking.end_at)}</Typography>
                 </Stack>
