@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pagination, Paper, Stack, Typography } from "@mui/material";
+import { Chip, Divider, Pagination, Paper, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { useApi } from "../../../hooks/useApi";
 
@@ -72,18 +72,48 @@ const BookingsView = () => {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  const getStatusMeta = (status: string) => {
+    if (status === "cancelled") return { label: "Отменена", color: "default" as const };
+    if (status === "booked" || status === "confirmed") return { label: "Подтверждена", color: "success" as const };
+    return { label: status, color: "warning" as const };
+  };
+
   return (
     <Stack spacing={1.5}>
-      {bookings.map((booking) => (
-        <Paper key={booking.id} variant="outlined" sx={{ p: 2 }}>
-          <Typography sx={{ fontWeight: 700 }}>Бронь #{booking.id.slice(0, 8)}</Typography>
-          <Typography variant="body2">Статус: {booking.status}</Typography>
-          <Typography variant="body2">Создано: {formatDateTime(booking.created_at)}</Typography>
-          <Typography variant="body2">Период: {formatDateTime(booking.start_at)} - {formatDateTime(booking.end_at)}</Typography>
-          <Typography variant="body2">Комната: {booking.room_name || "—"}</Typography>
-          <Typography variant="body2">Пользователь: {booking.user_email || "—"}</Typography>
-        </Paper>
-      ))}
+      {bookings.map((booking) => {
+        const statusMeta = getStatusMeta(booking.status);
+        return (
+          <Paper key={booking.id} variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+            <Stack spacing={1.25}>
+              <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", gap: 1 }}>
+                <Typography sx={{ fontWeight: 700 }}>Бронь #{booking.id.slice(0, 8)}</Typography>
+                <Chip size="small" color={statusMeta.color} label={statusMeta.label} />
+              </Stack>
+
+              <Divider />
+
+              <Stack direction={{ xs: "column", md: "row" }} spacing={1.5}>
+                <Stack spacing={0.5} sx={{ flex: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Период</Typography>
+                  <Typography variant="body2">{formatDateTime(booking.start_at)} — {formatDateTime(booking.end_at)}</Typography>
+                </Stack>
+                <Stack spacing={0.5} sx={{ flex: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Комната</Typography>
+                  <Typography variant="body2">{booking.room_name || "—"}</Typography>
+                </Stack>
+                <Stack spacing={0.5} sx={{ flex: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Пользователь</Typography>
+                  <Typography variant="body2">{booking.user_email || "—"}</Typography>
+                </Stack>
+              </Stack>
+
+              <Typography variant="caption" color="text.secondary">
+                Создано: {formatDateTime(booking.created_at)}
+              </Typography>
+            </Stack>
+          </Paper>
+        );
+      })}
       {bookings.length === 0 && (
         <Typography variant="body2" color="text.secondary">
           Брони пока не найдены.

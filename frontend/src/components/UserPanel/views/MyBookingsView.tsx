@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, CircularProgress, Paper, Stack, Typography } from "@mui/material";
+import { Button, Chip, CircularProgress, Divider, Link, Paper, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { useApi } from "../../../hooks/useApi";
 
@@ -40,6 +40,12 @@ const MyBookingsView = ({ bookingsVersion, onError, onSuccess }: MyBookingsViewP
   const [loading, setLoading] = useState(false);
   const [cancellingId, setCancellingId] = useState("");
   const { authHeaders } = useApi();
+
+   const getStatusMeta = (status: string) => {
+    if (status === "cancelled") return { label: "Отменена", color: "default" as const };
+    if (status === "booked" || status === "confirmed") return { label: "Активна", color: "success" as const };
+    return { label: status, color: "warning" as const };
+  };
 
   const loadBookings = async () => {
     setLoading(true);
@@ -88,30 +94,49 @@ const MyBookingsView = ({ bookingsVersion, onError, onSuccess }: MyBookingsViewP
 
   return (
     <Stack spacing={1.5}>
-      {bookings.map((booking) => (
-        <Paper key={booking.id} variant="outlined" sx={{ p: 2 }}>
-          <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", gap: 1.5 }}>
-            <Stack spacing={0.5}>
-              <Typography sx={{ fontWeight: 700 }}>{booking.room_name || "Комната"}</Typography>
-              <Typography variant="body2">Начало: {formatDateTime(booking.start_at)}</Typography>
-              <Typography variant="body2">Окончание: {formatDateTime(booking.end_at)}</Typography>
-              <Typography variant="body2">Статус: {booking.status}</Typography>
+      {bookings.map((booking) => {
+        const statusMeta = getStatusMeta(booking.status);
+        return (
+          <Paper key={booking.id} variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+            <Stack spacing={1.25}>
+              <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", gap: 1.5 }}>
+                <Stack spacing={0.5}>
+                  <Typography sx={{ fontWeight: 700 }}>{booking.room_name || "Комната"}</Typography>
+                  <Chip size="small" color={statusMeta.color} label={statusMeta.label} sx={{ width: "fit-content" }} />
+                </Stack>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleCancelBooking(booking.id)}
+                  disabled={cancellingId === booking.id || booking.status === "cancelled"}
+                  sx={{ alignSelf: { xs: "stretch", sm: "center" } }}
+                >
+                  Отменить
+                </Button>
+              </Stack>
+
+              <Divider />
+
+              <Stack direction={{ xs: "column", md: "row" }} spacing={1.5}>
+                <Stack spacing={0.4} sx={{ flex: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Начало</Typography>
+                  <Typography variant="body2">{formatDateTime(booking.start_at)}</Typography>
+                </Stack>
+                <Stack spacing={0.4} sx={{ flex: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Окончание</Typography>
+                  <Typography variant="body2">{formatDateTime(booking.end_at)}</Typography>
+                </Stack>
+              </Stack>
+
               {booking.conference_link && (
-                <Typography variant="body2">Конференция: {booking.conference_link}</Typography>
+                <Typography variant="body2">
+                  Конференция: <Link href={booking.conference_link} target="_blank" rel="noopener noreferrer">{booking.conference_link}</Link>
+                </Typography>
               )}
             </Stack>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => handleCancelBooking(booking.id)}
-              disabled={cancellingId === booking.id}
-              sx={{ alignSelf: { xs: "stretch", sm: "center" } }}
-            >
-              Отменить
-            </Button>
-          </Stack>
-        </Paper>
-      ))}
+            </Paper>
+        );
+      })}
       {bookings.length === 0 && (
         <Typography variant="body2" color="text.secondary">
           У вас пока нет активных бронирований.
