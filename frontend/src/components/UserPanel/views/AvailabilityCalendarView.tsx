@@ -1,52 +1,59 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Chip, CircularProgress, Divider, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Chip, CircularProgress, IconButton, Paper, Stack, Typography } from "@mui/material";
 import axios from "axios";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useApi } from "../../../hooks/useApi";
 import { API_URL } from "./bookRoom/constants";
-import type { Room, Slot } from "./bookRoom/types";
+import type { Slot } from "./bookRoom/types";
 
-const getToday = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
+type DayStat = { date: string; free: number; busy: number; total: number };
+
+const formatDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
-const formatTime = (isoDate: string) =>
-  new Date(isoDate).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+const monthTitle = (date: Date) => date.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
 
 const AvailabilityCalendarView = ({ onError }: { onError: (message: string) => void }) => {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [slotsByRoom, setSlotsByRoom] = useState<Record<string, Slot[]>>({});
-  const [selectedDate, setSelectedDate] = useState(getToday);
+  const [cursorMonth, setCursorMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [statsByDate, setStatsByDate] = useState<Record<string, DayStat>>({});
   const [loading, setLoading] = useState(false);
   const { authHeaders } = useApi();
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadMonthStats = async () => {
       setLoading(true);
       onError("");
       try {
-        const roomsResponse = await axios.get(`${API_URL}/rooms`, { headers: authHeaders });
-        const loadedRooms: Room[] = roomsResponse.data || [];
-        setRooms(loadedRooms);
+        const start = new Date(cursorMonth.getFullYear(), cursorMonth.getMonth(), 1);
+        const end = new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() + 1, 0);
+        const dates: string[] = [];
 
-        const roomSlots = await Promise.all(
-          loadedRooms.map(async (room) => {
-            const slotResponse = await axios.get(`${API_URL}/slots`, {
-              headers: authHeaders,
-              params: { room_id: room.id, date: selectedDate },
-            });
-            return { roomId: room.id, slots: (slotResponse.data || []) as Slot[] };
-          }),
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          dates.push(formatDateKey(d));
+        }
+
+        const responses = await Promise.all(
+          dates.map((date) => axios.get(`${API_URL}/slots`, { headers: authHeaders, params: { date } })),
         );
 
-        const nextSlots: Record<string, Slot[]> = {};
-        roomSlots.forEach(({ roomId, slots }) => {
-          nextSlots[roomId] = slots;
+        const nextStats: Record<string, DayStat> = {};
+        responses.forEach((response, i) => {
+          const date = dates[i];
+          const slots = (response.data || []) as Slot[];
+          const free = slots.filter((slot) => slot.status === "free").length;
+          const busy = slots.length - free;
+          nextStats[date] = { date, free, busy, total: slots.length };
         });
-        setSlotsByRoom(nextSlots);
+
+        setStatsByDate(nextStats);
       } catch (e) {
         console.error(e);
         onError("Не удалось загрузить календарь загруженности");
@@ -55,58 +62,72 @@ const AvailabilityCalendarView = ({ onError }: { onError: (message: string) => v
       }
     };
 
-    loadData();
-  }, [authHeaders, onError, selectedDate]);
+    loadMonthStats();
+  }, [authHeaders, cursorMonth, onError]);
 
-  const summary = useMemo(() => {
-    const allSlots = Object.values(slotsByRoom).flat();
-    const free = allSlots.filter((slot) => slot.status === "free").length;
-    const busy = allSlots.length - free;
-    return { free, busy, total: allSlots.length };
-  }, [slotsByRoom]);
+  const calendarCells = useMemo(() => {
+    const year = cursorMonth.getFullYear();
+    const month = cursorMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const leadingEmpty = (firstDay.getDay() + 6) % 7;
+
+    const cells: Array<{ date: string | null }> = [];
+    for (let i = 0; i < leadingEmpty; i += 1) cells.push({ date: null });
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      cells.push({ date: formatDateKey(new Date(year, month, day)) });
+    }
+
+    while (cells.length % 7 !== 0) cells.push({ date: null });
+    return cells;
+  }, [cursorMonth]);
 
   return (
     <Stack spacing={2}>
-      <TextField
-        label="Дата"
-        type="date"
-        value={selectedDate}
-        onChange={(e) => setSelectedDate(e.target.value)}
-        slotProps={{ inputLabel: { shrink: true } }}
-        sx={{ maxWidth: 260 }}
-      />
+      <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
+        <IconButton onClick={() => setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() - 1, 1))}>
+          <ChevronLeftIcon />
+        </IconButton>
+        <Typography variant="h6" sx={{ textTransform: "capitalize" }}>{monthTitle(cursorMonth)}</Typography>
+        <IconButton onClick={() => setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() + 1, 1))}>
+          <ChevronRightIcon />
+        </IconButton>
+      </Stack>
 
-      <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }} useFlexGap>
-        <Chip color="success" label={`Свободно: ${summary.free}`} />
-        <Chip color="warning" label={`Занято: ${summary.busy}`} />
-        <Chip label={`Всего слотов: ${summary.total}`} />
+      <Stack direction="row" spacing={1}>
+        {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day) => (
+          <Paper key={day} variant="outlined" sx={{ flex: 1, py: 1, textAlign: 'center', fontWeight: 600 }}>{day}</Paper>
+        ))}
       </Stack>
 
       {loading && <CircularProgress />}
 
-      {!loading && rooms.map((room) => {
-        const slots = slotsByRoom[room.id] || [];
-        return (
-          <Paper key={room.id} variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
-            <Stack spacing={1.25}>
-              <Typography sx={{ fontWeight: 700 }}>{room.name}</Typography>
-              <Typography variant="body2" color="text.secondary">Вместимость: {room.capacity}</Typography>
-              <Divider />
-              {slots.length === 0 && <Alert severity="info">На эту дату слоты не найдены.</Alert>}
-              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }} useFlexGap>
-                {slots.map((slot) => (
-                  <Chip
-                    key={slot.id}
-                    size="small"
-                    color={slot.status === "free" ? "success" : "default"}
-                    label={`${formatTime(slot.start_at)}–${formatTime(slot.end_at)}`}
-                  />
-                ))}
-              </Stack>
+      {!loading && (
+        <Stack spacing={1}>
+          {Array.from({ length: calendarCells.length / 7 }, (_, rowIndex) => (
+            <Stack key={rowIndex} direction="row" spacing={1}>
+              {calendarCells.slice(rowIndex * 7, rowIndex * 7 + 7).map((cell, i) => {
+                if (!cell.date) {
+                  return <Paper key={`${rowIndex}-${i}`} variant="outlined" sx={{ flex: 1, minHeight: 96 }} />;
+                }
+                const stat = statsByDate[cell.date] || { total: 0, free: 0, busy: 0 };
+                return (
+                  <Paper key={cell.date} variant="outlined" sx={{ flex: 1, p: 1.2, minHeight: 96 }}>
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle2">{cell.date.slice(-2)}</Typography>
+                      <Chip size="small" color="success" label={`Своб: ${stat.free}`} />
+                      <Chip size="small" color="default" label={`Зан: ${stat.busy}`} />
+                    </Stack>
+                  </Paper>
+                );
+              })}
             </Stack>
-          </Paper>
-        );
-      })}
+          ))}
+        </Stack>
+      )}
+
+      {!loading && Object.keys(statsByDate).length === 0 && <Alert severity="info">Нет данных за выбранный месяц.</Alert>}
     </Stack>
   );
 };
