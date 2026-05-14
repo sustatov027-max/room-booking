@@ -3,8 +3,6 @@ import { Alert, Divider, Paper, Typography } from "@mui/material";
 import type { UserView } from "./UserPanel";
 import BookRoomView from "./views/BookRoomView";
 import MyBookingsView from "./views/MyBookingsView";
-import FAQView from "./views/FAQView";
-import AvailabilityCalendarView from "./views/AvailabilityCalendarView";
 
 interface UserContentProps {
   activeView: UserView;
@@ -18,8 +16,6 @@ const UserContent = ({ activeView }: UserContentProps) => {
   const viewTitles: Record<UserView, string> = {
     "book-room": "Бронирование комнаты",
     "my-bookings": "Мои брони",
-    "availability-calendar": "Календарь загруженности",
-    faq: "Правила и FAQ",
   };
 
   useEffect(() => {
@@ -66,8 +62,6 @@ const UserContent = ({ activeView }: UserContentProps) => {
           onSuccess={handleBookingCancelled}
         />
       )}
-      {activeView === "availability-calendar" && <AvailabilityCalendarView onError={setError} />}
-      {activeView === "faq" && <FAQView />}
     </Paper>
   );
 };

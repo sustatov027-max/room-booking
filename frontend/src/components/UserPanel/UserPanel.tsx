@@ -5,7 +5,7 @@ import Footer from "../Footer"
 import UserSidebar from "./UserSidebar";
 import UserContent from "./UserContent";
 
-export type UserView = "book-room" | "my-bookings" | "faq" | "availability-calendar";
+export type UserView = "book-room" | "my-bookings";
 
 const UserPanel = () => {
   const [activeView, setActiveView] = useState<UserView>("book-room");
