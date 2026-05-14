@@ -10,6 +10,8 @@ const UserSidebar = ({ activeView, onViewChange }: UserSidebarProps) => {
   const menuItems: Array<{ key: UserView; label: string }> = [
     { key: "book-room", label: "Забронировать комнату" },
     { key: "my-bookings", label: "Мои брони" },
+    { key: "availability-calendar", label: "Календарь загруженности" },
+    { key: "faq", label: "Правила и FAQ" },
   ];
 
   return (
