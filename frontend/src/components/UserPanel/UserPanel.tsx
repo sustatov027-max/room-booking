@@ -5,10 +5,10 @@ import Footer from "../Footer"
 import UserSidebar from "./UserSidebar";
 import UserContent from "./UserContent";
 
-export type UserView = "book-room" | "my-bookings";
+export type UserView = "instructions" | "book-room" | "weekly-occupancy" | "my-bookings";
 
 const UserPanel = () => {
-  const [activeView, setActiveView] = useState<UserView>("book-room");
+  const [activeView, setActiveView] = useState<UserView>("instructions");
 
   useEffect(() => {
     document.title = "Панель пользователя";

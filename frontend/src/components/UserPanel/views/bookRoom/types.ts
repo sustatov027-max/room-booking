@@ -14,3 +14,10 @@ export type Slot = {
   end_at: string;
   status?: string;
 };
+
+export type DayOccupancy = {
+  date: string;
+  free: number;
+  booked: number;
+  total: number;
+};

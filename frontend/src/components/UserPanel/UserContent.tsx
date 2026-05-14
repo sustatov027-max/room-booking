@@ -3,6 +3,8 @@ import { Alert, Divider, Paper, Typography } from "@mui/material";
 import type { UserView } from "./UserPanel";
 import BookRoomView from "./views/BookRoomView";
 import MyBookingsView from "./views/MyBookingsView";
+import InstructionsView from "./views/InstructionsView";
+import WeeklyOccupancyView from "./views/WeeklyOccupancyView";
 
 interface UserContentProps {
   activeView: UserView;
@@ -14,7 +16,9 @@ const UserContent = ({ activeView }: UserContentProps) => {
   const [bookingsVersion, setBookingsVersion] = useState(0);
 
   const viewTitles: Record<UserView, string> = {
+    "instructions": "Как пользоваться приложением",
     "book-room": "Бронирование комнаты",
+    "weekly-occupancy": "Загруженность на неделю",
     "my-bookings": "Мои брони",
   };
 
@@ -52,9 +56,11 @@ const UserContent = ({ activeView }: UserContentProps) => {
         </Alert>
       )}
 
+      {activeView === "instructions" && <InstructionsView />}
       {activeView === "book-room" && (
         <BookRoomView onError={setError} onSuccess={handleBookingCreated} />
       )}
+      {activeView === "weekly-occupancy" && <WeeklyOccupancyView onError={setError} />}
       {activeView === "my-bookings" && (
         <MyBookingsView
           bookingsVersion={bookingsVersion}

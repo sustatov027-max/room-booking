@@ -36,16 +36,16 @@ upsert_schedules AS (
         end_time = EXCLUDED.end_time
     RETURNING room_id
 ),
-month_days AS (
+week_days AS (
     SELECT generate_series(
-        date_trunc('month', CURRENT_DATE)::date,
-        (date_trunc('month', CURRENT_DATE) + interval '1 month - 1 day')::date,
+        (date_trunc('week', CURRENT_DATE)::date + interval '1 day')::date,
+        (date_trunc('week', CURRENT_DATE)::date + interval '5 day')::date,
         interval '1 day'
     )::date AS day
 ),
 work_days AS (
-    SELECT day FROM month_days WHERE EXTRACT(ISODOW FROM day) BETWEEN 1 AND 5
-),
+     SELECT day FROM week_days WHERE EXTRACT(ISODOW FROM day) BETWEEN 1 AND 5
+)
 slot_starts AS (
     SELECT tr.id AS room_id, wd.day, gs AS slot_start
     FROM test_rooms tr
