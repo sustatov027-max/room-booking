@@ -1,4 +1,7 @@
-.PHONY: up down logs ps shell test restart migrate-up migrate-down seed-up seed-down
+.PHONY: start up down logs ps shell test restart migrate-up migrate-down seed-up seed-down
+
+start: up
+	cd frontend && npm run dev
 
 up:
 	docker-compose up -d

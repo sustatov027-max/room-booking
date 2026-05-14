@@ -27,7 +27,7 @@ test_rooms AS (
 ),
 upsert_schedules AS (
     INSERT INTO schedules (room_id, days_of_week, start_time, end_time)
-    SELECT tr.id, ARRAY[1,2,3,4,5], '09:00:00'::time, '18:00:00'::time
+    SELECT tr.id, ARRAY[1,2,3,4,5], '06:00:00'::time, '15:00:00'::time
     FROM test_rooms tr
     ON CONFLICT (room_id)
     DO UPDATE SET
@@ -36,23 +36,35 @@ upsert_schedules AS (
         end_time = EXCLUDED.end_time
     RETURNING room_id
 ),
-week_days AS (
+
+next_days AS (
     SELECT generate_series(
-        (date_trunc('week', CURRENT_DATE)::date + interval '1 day')::date,
-        (date_trunc('week', CURRENT_DATE)::date + interval '5 day')::date,
+        CURRENT_DATE,
+        CURRENT_DATE + interval '20 days',
         interval '1 day'
     )::date AS day
 ),
+
+work_days_numbered AS (
+    SELECT 
+        day,
+        ROW_NUMBER() OVER (ORDER BY day) AS rn
+    FROM next_days
+    WHERE EXTRACT(ISODOW FROM day) BETWEEN 1 AND 5
+),
+
 work_days AS (
-     SELECT day FROM week_days WHERE EXTRACT(ISODOW FROM day) BETWEEN 1 AND 5
-)
+    SELECT day 
+    FROM work_days_numbered 
+    WHERE rn <= 10
+),
 slot_starts AS (
     SELECT tr.id AS room_id, wd.day, gs AS slot_start
     FROM test_rooms tr
     CROSS JOIN work_days wd
     CROSS JOIN generate_series(
-        wd.day::timestamp + time '09:00',
-        wd.day::timestamp + time '17:30',
+        wd.day::timestamp + time '06:00',
+        wd.day::timestamp + time '14:30',
         interval '30 minutes'
     ) gs
 )
