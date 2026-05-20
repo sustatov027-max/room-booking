@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Stack, TextField } from "@mui/material";
+import { Button, Fade, Stack, TextField } from "@mui/material";
 import axios from "axios";
 import { useApi } from "../../../hooks/useApi";
 import { API_URL } from "./bookRoom/constants";
@@ -145,43 +145,45 @@ const BookRoomView = ({ onError, onSuccess }: BookRoomViewProps) => {
   }
 
   return (
-    <Stack spacing={2}>
-      <SelectedRoomCard room={selectedRoom} onBackToRooms={handleBackToRooms} />
+    <Fade in timeout={260}>
+      <Stack spacing={2}>
+        <SelectedRoomCard room={selectedRoom} onBackToRooms={handleBackToRooms} />
 
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+          <TextField
+            label="Дата"
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            fullWidth
+          />
+        </Stack>
+
         <TextField
-          label="Дата"
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
+          label="Ссылка на конференцию"
+          value={conferenceLink}
+          onChange={(e) => setConferenceLink(e.target.value)}
+          placeholder="Можно оставить пустым"
           fullWidth
         />
+
+        <SlotsTable
+          slots={slots}
+          selectedSlotIds={selectedSlotIds}
+          loading={loadingSlots}
+          onToggleSlot={handleToggleSlot}
+        />
+
+        <Button
+          variant="contained"
+          onClick={handleCreateBooking}
+          disabled={selectedSlotIds.length === 0 || bookingLoading}
+        >
+          Забронировать выбранные слоты
+        </Button>
       </Stack>
-
-      <TextField
-        label="Ссылка на конференцию"
-        value={conferenceLink}
-        onChange={(e) => setConferenceLink(e.target.value)}
-        placeholder="Можно оставить пустым"
-        fullWidth
-      />
-
-      <SlotsTable
-        slots={slots}
-        selectedSlotIds={selectedSlotIds}
-        loading={loadingSlots}
-        onToggleSlot={handleToggleSlot}
-      />
-
-      <Button
-        variant="contained"
-        onClick={handleCreateBooking}
-        disabled={selectedSlotIds.length === 0 || bookingLoading}
-      >
-        Забронировать выбранные слоты
-      </Button>
-    </Stack>
+    </Fade>
   );
 };
 

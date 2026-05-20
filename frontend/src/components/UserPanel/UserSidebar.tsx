@@ -22,6 +22,15 @@ const UserSidebar = ({ activeView, onViewChange }: UserSidebarProps) => {
             key={item.key}
             selected={activeView === item.key}
             onClick={() => onViewChange(item.key)}
+            sx={{
+              transition: (theme) =>
+                theme.transitions.create(["background-color", "transform"], {
+                  duration: theme.transitions.duration.shorter,
+                }),
+              "&.Mui-selected": {
+                transform: "translateX(4px)",
+              },
+            }}
           >
             <ListItemText primary={item.label} />
           </ListItemButton>

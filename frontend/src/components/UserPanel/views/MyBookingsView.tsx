@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Chip, CircularProgress, Divider, Link, Paper, Stack, Typography } from "@mui/material";
+import { Button, Chip, CircularProgress, Divider, Grow, Link, Paper, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { useApi } from "../../../hooks/useApi";
 
@@ -94,47 +94,49 @@ const MyBookingsView = ({ bookingsVersion, onError, onSuccess }: MyBookingsViewP
 
   return (
     <Stack spacing={1.5}>
-      {bookings.map((booking) => {
+      {bookings.map((booking, index) => {
         const statusMeta = getStatusMeta(booking.status);
         return (
-          <Paper key={booking.id} variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
-            <Stack spacing={1.25}>
-              <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", gap: 1.5 }}>
-                <Stack spacing={0.5}>
-                  <Typography sx={{ fontWeight: 700 }}>{booking.room_name || "Комната"}</Typography>
-                  <Chip size="small" color={statusMeta.color} label={statusMeta.label} sx={{ width: "fit-content" }} />
+          <Grow key={booking.id} in timeout={260 + index * 70}>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+              <Stack spacing={1.25}>
+                <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", gap: 1.5 }}>
+                  <Stack spacing={0.5}>
+                    <Typography sx={{ fontWeight: 700 }}>{booking.room_name || "Комната"}</Typography>
+                    <Chip size="small" color={statusMeta.color} label={statusMeta.label} sx={{ width: "fit-content" }} />
+                  </Stack>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleCancelBooking(booking.id)}
+                    disabled={cancellingId === booking.id || booking.status === "cancelled"}
+                    sx={{ alignSelf: { xs: "stretch", sm: "center" } }}
+                  >
+                    Отменить
+                  </Button>
                 </Stack>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleCancelBooking(booking.id)}
-                  disabled={cancellingId === booking.id || booking.status === "cancelled"}
-                  sx={{ alignSelf: { xs: "stretch", sm: "center" } }}
-                >
-                  Отменить
-                </Button>
+
+                <Divider />
+
+                <Stack direction={{ xs: "column", md: "row" }} spacing={1.5}>
+                  <Stack spacing={0.4} sx={{ flex: 1 }}>
+                    <Typography variant="caption" color="text.secondary">Начало</Typography>
+                    <Typography variant="body2">{formatDateTime(booking.start_at)}</Typography>
+                  </Stack>
+                  <Stack spacing={0.4} sx={{ flex: 1 }}>
+                    <Typography variant="caption" color="text.secondary">Окончание</Typography>
+                    <Typography variant="body2">{formatDateTime(booking.end_at)}</Typography>
+                  </Stack>
+                </Stack>
+
+                {booking.conference_link && (
+                  <Typography variant="body2">
+                    Конференция: <Link href={booking.conference_link} target="_blank" rel="noopener noreferrer">{booking.conference_link}</Link>
+                  </Typography>
+                )}
               </Stack>
-
-              <Divider />
-
-              <Stack direction={{ xs: "column", md: "row" }} spacing={1.5}>
-                <Stack spacing={0.4} sx={{ flex: 1 }}>
-                  <Typography variant="caption" color="text.secondary">Начало</Typography>
-                  <Typography variant="body2">{formatDateTime(booking.start_at)}</Typography>
-                </Stack>
-                <Stack spacing={0.4} sx={{ flex: 1 }}>
-                  <Typography variant="caption" color="text.secondary">Окончание</Typography>
-                  <Typography variant="body2">{formatDateTime(booking.end_at)}</Typography>
-                </Stack>
-              </Stack>
-
-              {booking.conference_link && (
-                <Typography variant="body2">
-                  Конференция: <Link href={booking.conference_link} target="_blank" rel="noopener noreferrer">{booking.conference_link}</Link>
-                </Typography>
-              )}
-            </Stack>
             </Paper>
+          </Grow>
         );
       })}
       {bookings.length === 0 && (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Stack } from "@mui/material";
+import { Fade, Stack } from "@mui/material";
 import { useApi } from "../../../hooks/useApi";
 import { API_URL } from "./bookRoom/constants";
 import WeeklyOccupancyCalendar from "./bookRoom/WeeklyOccupancyCalendar";
@@ -82,14 +82,16 @@ const WeeklyOccupancyView = ({ onError }: WeeklyOccupancyViewProps) => {
   }, [authHeaders, onError, selectedWeekStart]);
 
   return (
-    <Stack spacing={2}>
-      <WeeklyOccupancyCalendar
-        weekOccupancy={weekOccupancy}
-        loading={weekOccupancyLoading}
-        selectedWeekStart={selectedWeekStart}
-        onWeekChange={setSelectedWeekStart}
-      />
-    </Stack>
+    <Fade in timeout={260}>
+      <Stack spacing={2}>
+        <WeeklyOccupancyCalendar
+          weekOccupancy={weekOccupancy}
+          loading={weekOccupancyLoading}
+          selectedWeekStart={selectedWeekStart}
+          onWeekChange={setSelectedWeekStart}
+        />
+      </Stack>
+    </Fade>
   );
 };
 
