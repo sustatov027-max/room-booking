@@ -8,7 +8,7 @@ interface UserSidebarProps {
 
 const UserSidebar = ({ activeView, onViewChange }: UserSidebarProps) => {
   const menuItems: Array<{ key: UserView; label: string }> = [
-    { key: "instructions", label: "Как пользоваться" },
+    { key: "instructions", label: "Информация" },
     { key: "book-room", label: "Забронировать комнату" },
     { key: "weekly-occupancy", label: "Загруженность на неделю" },
     { key: "my-bookings", label: "Мои брони" },

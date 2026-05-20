@@ -17,7 +17,7 @@ const UserContent = ({ activeView }: UserContentProps) => {
   const [bookingsVersion, setBookingsVersion] = useState(0);
 
   const viewTitles: Record<UserView, string> = {
-    "instructions": "Как пользоваться приложением",
+    "instructions": "Информация",
     "book-room": "Бронирование комнаты",
     "weekly-occupancy": "Загруженность на неделю",
     "my-bookings": "Мои брони",
