@@ -5,6 +5,7 @@ import RoomsView from "./views/RoomsView";
 import SlotsView from "./views/SlotsView";
 import BookingsView from "./views/BookingsView";
 import { useApi } from "../../hooks/useApi";
+import PageTransition from "../PageTransition";
 
 type AdminView = "create-room" | "rooms" | "slots" | "bookings";
 
@@ -35,26 +36,28 @@ const AdminContent = ({ activeView }: AdminContentProps) => {
 
   return (
     <Paper elevation={2} sx={{ p: 3, flex: 1 }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        {viewTitles[activeView]}
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
+      <PageTransition transitionKey={activeView}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          {viewTitles[activeView]}
+        </Typography>
+        <Divider sx={{ mb: 2 }} />
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          {activeView === "create-room" && <CreateRoomForm onSuccess={handleSuccess} />}
-          {activeView === "rooms" && <RoomsView />}
-          {activeView === "slots" && <SlotsView />}
-          {activeView === "bookings" && <BookingsView />}
-        </>
-      )}
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <>
+            {activeView === "create-room" && <CreateRoomForm onSuccess={handleSuccess} />}
+            {activeView === "rooms" && <RoomsView />}
+            {activeView === "slots" && <SlotsView />}
+            {activeView === "bookings" && <BookingsView />}
+          </>
+        )}
+      </PageTransition>
     </Paper>
   );
 };

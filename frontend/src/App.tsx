@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useAppDispatch, useAppSelector } from './redux/hooks'
 import { setToken, clearToken, selectToken } from './redux/jwtSlice'
@@ -10,6 +10,58 @@ import { Typography } from '@mui/material'
 import AdminPanel from './components/AdminPanel/AdminPanel'
 import UserPage from './components/UserPage'
 import UnauthorizedPage from './components/UnauthorizedPage'
+import PageTransition from './components/PageTransition'
+
+interface AppRoutesProps {
+  isAuthenticated: boolean
+  checkAccess: (allowedRoles?: string[]) => boolean
+  role?: string | null
+}
+
+const AppRoutes = ({ isAuthenticated, checkAccess, role }: AppRoutesProps) => {
+  const location = useLocation()
+
+  return (
+    <PageTransition transitionKey={location.pathname}>
+      <Routes location={location}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/"
+          element={
+            !isAuthenticated ? <Navigate to="/login" replace /> :
+            role === 'admin' ? <Navigate to="/admin" replace /> :
+            role === 'user' ? <Navigate to="/user" replace /> :
+            <Navigate to="/login" replace />
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            checkAccess(['admin'])
+              ? <AdminPanel />
+              : <Navigate to={isAuthenticated ? "/unauthorized" : "/login"} replace />
+          }
+        />
+
+        <Route
+          path="/user"
+          element={
+            checkAccess(['user'])
+            ? <UserPage />
+            : <Navigate to={isAuthenticated ? "/unauthorized" : "/login"} replace />
+          }
+        />
+
+        <Route
+          path="/unauthorized"
+          element={<UnauthorizedPage />}
+        />
+      </Routes>
+    </PageTransition>
+  )
+}
 
 function App() {
   const dispatch = useAppDispatch()
@@ -92,42 +144,11 @@ function App() {
 
   return (
     <Router>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route 
-          path="/" 
-          element={
-            !isAuthenticated ? <Navigate to="/login" replace /> :
-            role === 'admin' ? <Navigate to="/admin" replace /> :
-            role === 'user' ? <Navigate to="/user" replace /> :
-            <Navigate to="/login" replace />
-          } 
-        />
-
-        <Route 
-          path="/admin" 
-          element={
-            checkAccess(['admin']) 
-              ? <AdminPanel /> 
-              : <Navigate to={isAuthenticated ? "/unauthorized" : "/login"} replace />
-          } 
-        />
-
-        <Route 
-          path="/user"
-          element={
-            checkAccess(['user'])
-            ? <UserPage />
-            : <Navigate to={isAuthenticated ? "/unauthorized" : "/login"} replace />
-          }
-        />
-
-          <Route
-            path="/unauthorized"
-            element={<UnauthorizedPage />}
-          />
-      </Routes>
+      <AppRoutes
+        isAuthenticated={isAuthenticated}
+        checkAccess={checkAccess}
+        role={role}
+      />
     </Router>
   )
 }
